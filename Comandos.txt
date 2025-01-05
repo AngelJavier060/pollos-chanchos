@@ -1,0 +1,14 @@
+Backend 
+Crear un entorno Virtual 
+python -m venv env
+Activar el entorno virtual 
+.\env\Scripts\activate
+Eliminar el entorno virtual
+Remove-Item -Recurse -Force env
+Para poder actualizar la base de tablas 
+python -m src.database.seed_data
+Ejecutar el entorno Virtual
+uvicorn src.main:app --reload
+Desactivar el entorno virtual
+deactivate
+python -m src.database.test_connection
