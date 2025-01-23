@@ -1,10 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link"; // Importar Link desde Next.js
+import Link from "next/link"; // Usamos 'next/link' en lugar de react-router-dom
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/dropdown-menu";  // Ajuste a la ruta correcta
+import { Bird, Rat, Search, Lock } from "lucide-react"; // Asegúrate de importar los iconos de lucide-react
+import { useRouter } from 'next/navigation'; // Usamos useRouter de Next.js en lugar de react-router-dom
 
 export default function Home() {
+  const router = useRouter();  // Reemplazamos useNavigate por useRouter de Next.js
+
   const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleLoginClick = (type?: string) => {
+    if (type) {
+      localStorage.setItem('userType', type);
+    }
+    
+    // Redirigir dependiendo del tipo (pollos, chanchos o administrador)
+    if (type === "pollos") {
+      router.push('/auth/pollo');  // Redirige al login de Pollos
+    } else if (type === "chanchos") {
+      router.push('/auth/chancho');  // Redirige al login de Chanchos
+    } else {
+      router.push('/auth/admin');  // Redirige al login del Administrador
+    }
+  };
+
+  const handleAdminClick = () => {
+    // Redirigimos directamente al login del administrador
+    router.push('/auth/admin');
+  };
 
   return (
     <div>
@@ -46,31 +72,38 @@ export default function Home() {
               </button>
               {showDropdown && (
                 <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-lg p-4 text-black z-50">
-                  <Link
-                    href="/login-pollo"
-                    className="block px-4 py-2 hover:bg-gray-100 rounded-lg"
+                  {/* Opción Administrador con Icono */}
+                  <button
+                    onClick={() => handleLoginClick("admin")}  // Redirige al login de Administrador
+                    className="flex items-center block px-4 py-2 hover:bg-gray-100 rounded-lg"
                   >
-                    Chicken
-                  </Link>
-                  <Link
-                    href="/login-chancho"
-                    className="block px-4 py-2 hover:bg-gray-100 rounded-lg"
+                    <Lock className="mr-2 h-4 w-4" />
+                    Administrador
+                  </button>
+                  {/* Opción Pollos con Icono */}
+                  <button
+                    onClick={() => handleLoginClick("pollos")}  // Redirige al login de Pollos
+                    className="flex items-center block px-4 py-2 hover:bg-gray-100 rounded-lg"
                   >
-                    Pig
-                  </Link>
+                    <Bird className="mr-2 h-4 w-4" />
+                    Pollos
+                  </button>
+                  {/* Opción Chanchos con Icono */}
+                  <button
+                    onClick={() => handleLoginClick("chanchos")}  // Redirige al login de Chanchos
+                    className="flex items-center block px-4 py-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    <Rat className="mr-2 h-4 w-4" />
+                    Chanchos
+                  </button>
                 </div>
               )}
             </div>
           </nav>
-
-          {/* Ícono de búsqueda */}
-          <div className="hidden md:block">
-            <button className="text-white hover:text-yellow-300">🔍</button>
-          </div>
         </div>
       </div>
 
-      {/* Encabezado con imagen destacada */}
+      {/* Resto del contenido de la página */}
       <div className="relative">
         <img
           src="/images/cerdito1.jpg" // Coloca una imagen de alta calidad aquí
@@ -115,11 +148,12 @@ export default function Home() {
                 inventarios, alimentación, y datos de crecimiento.
               </p>
               <div className="mt-4 flex space-x-8">
-                <Link href="/login-chancho">
-                  <button className="mt-4 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition">
-                    Login
-                  </button>
-                </Link>
+                <button
+                  onClick={() => handleLoginClick("chanchos")}  // Redirige al login de Chanchos
+                  className="mt-4 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition"
+                >
+                  Login
+                </button>
               </div>
             </div>
           </div>
@@ -140,11 +174,12 @@ export default function Home() {
                 avanzadas para maximizar su rendimiento.
               </p>
               <div className="mt-4 flex space-x-8">
-                <Link href="/login-pollo">
-                  <button className="mt-4 bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition">
-                    Login
-                  </button>
-                </Link>
+                <button
+                  onClick={() => handleLoginClick("pollos")}  // Redirige al login de Pollos
+                  className="mt-4 bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition"
+                >
+                  Login
+                </button>
               </div>
             </div>
           </div>
