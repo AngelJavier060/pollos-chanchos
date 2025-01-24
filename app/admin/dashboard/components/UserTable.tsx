@@ -1,4 +1,5 @@
-import { Button } from "./ui/button";
+import { Button } from "@/app/components/ui/button";
+import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/app/components/ui/table";
 import { FC } from "react";
 import { User } from "./types/user";
 

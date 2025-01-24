@@ -2,39 +2,51 @@
 
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
-import { cn } from "@/lib/utils"; // Asegúrate de tener esta función definida en utils
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/app/lib/utils";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+const buttonVariants = cva(
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+);
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
   asChild?: boolean;
-  variant?: "outline" | "filled"; // Puedes agregar más variantes
-  size?: "sm" | "md" | "lg"; // Diferentes tamaños de botones
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, asChild = false, variant = "filled", size = "md", ...props }, ref) => {
-    // Definimos clases dependiendo de las variantes y tamaños
-    const variantClasses =
-      variant === "outline"
-        ? "border-2 border-gray-500 text-gray-500 hover:bg-gray-100"
-        : "bg-purple-600 text-white hover:bg-purple-700";
-
-    const sizeClasses =
-      size === "sm"
-        ? "px-3 py-1.5 text-sm"
-        : size === "lg"
-        ? "px-6 py-3 text-lg"
-        : "px-4 py-2 text-md"; // Tamaños personalizados
-
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        className={cn(
-          "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 cursor-pointer", // Aquí se aplica el cursor: pointer
-          variantClasses,
-          sizeClasses,
-          className // Para clases adicionales personalizadas
-        )}
         {...props}
       />
     );
@@ -43,4 +55,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = "Button";
 
-export { Button };
+export { Button, buttonVariants };

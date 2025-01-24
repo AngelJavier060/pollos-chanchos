@@ -1,10 +1,9 @@
-// next.config.js
-const path = require('path');
-
-module.exports = {
-  reactStrictMode: false, // Desactiva el Strict Mode de React
-  webpack: (config) => {
-    config.resolve.alias['@'] = path.resolve(__dirname, 'app');
-    return config;
-  },
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    // Removemos appDir ya que ya no es necesario en las últimas versiones
+  }
 }
+
+module.exports = nextConfig 

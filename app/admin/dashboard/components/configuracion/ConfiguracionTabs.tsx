@@ -3,7 +3,7 @@
 import { FC } from 'react';
 import VacunaConfig from './VacunaConfig';
 import PlanNutricionalComponent from './PlanNutricional';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { Vacuna, PlanVacunacion, PlanNutricional, Raza } from '../types/configuracion';
 
 interface ConfiguracionTabsProps {

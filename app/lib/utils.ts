@@ -1,4 +1,4 @@
-import { clsx, ClassValue } from "clsx";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 /**
@@ -10,5 +10,5 @@ import { twMerge } from "tailwind-merge";
  *   cn("bg-red-500", undefined, { "text-white": true }) // "bg-red-500 text-white"
  */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(...inputs));
+  return twMerge(clsx(inputs));
 }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Raza } from './types/raza';
+import { toast } from "@/app/components/ui/use-toast";
 
 interface RazaFormProps {
   onSubmit: (data: Partial<Raza>) => void;

@@ -1,11 +1,12 @@
 'use client';
 
 import { FC, useState, useEffect } from 'react';
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
 import { Select } from "./ui/select";
 import { User } from './types/user';
+import { toast } from "@/app/components/ui/use-toast";
 
 interface UserFormProps {
   onSubmit: (data: Partial<User>) => void;

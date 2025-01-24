@@ -1,7 +1,9 @@
+"use client"
+
 // components/ui/tabs.tsx
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
-import { cn } from "@/lib/utils"
+import { cn } from "@/app/lib/utils"
 
 // El componente principal de Tabs
 const Tabs = TabsPrimitive.Root

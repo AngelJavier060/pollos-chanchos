@@ -8,7 +8,8 @@ import {
   Warehouse,
   Syringe,
   LogOut,
-  FileText
+  FileText,
+  ClipboardList
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -20,7 +21,7 @@ const Navbar: FC<NavbarProps> = ({ activeTab, onTabChange }) => {
   const tabs = [
     { id: 'general', label: 'General', icon: <LayoutDashboard className="w-4 h-4 mr-2" /> },
     { id: 'usuarios', label: 'Usuarios', icon: <Users className="w-4 h-4 mr-2" /> },
-    { id: 'razas', label: 'Razas', icon: <Bird className="w-4 h-4 mr-2" /> },
+    { id: 'registro', label: 'Registro', icon: <ClipboardList className="w-4 h-4 mr-2" /> },
     { id: 'inventario', label: 'Inventario', icon: <Warehouse className="w-4 h-4 mr-2" /> },
     { id: 'configuracion', label: 'Configuración', icon: <Syringe className="w-4 h-4 mr-2" /> },
     { id: 'reportes', label: 'Reportes', icon: <FileText className="w-4 h-4 mr-2" /> },

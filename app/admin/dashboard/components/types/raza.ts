@@ -6,6 +6,6 @@ export interface Raza {
   tamanioPromedio: number;
   edadMadurez: number;
   tiempoCrecimiento: number;
-  imagen?: string;
   descripcion?: string;
+  imagen?: string;
 } 

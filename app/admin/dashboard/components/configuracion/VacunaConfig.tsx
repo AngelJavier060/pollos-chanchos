@@ -1,12 +1,14 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import { Vacuna, PlanVacunacion, Raza } from '../types/configuracion';
 import { Plus, Edit2, Trash2, Calendar } from 'lucide-react';
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/app/components/ui/dialog";
+import { toast } from "@/app/components/ui/use-toast";
 
 interface VacunaConfigProps {
   vacunas: Vacuna[];

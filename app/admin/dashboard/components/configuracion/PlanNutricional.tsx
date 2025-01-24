@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlanNutricional, FaseNutricional, Raza } from '../types/configuracion';
 import { Plus, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { toast } from "@/components/ui/use-toast";
+import { Dialog, DialogContent } from "@/app/components/ui/dialog";
+import { toast } from "@/app/components/ui/use-toast";
 
 interface PlanNutricionalProps {
   planes: PlanNutricional[];

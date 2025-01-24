@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/app/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/app/components/ui/dialog";
 import { UserPlus, Plus } from "lucide-react";
 import UserForm from "./components/UserForm";
 import UserTable from "./components/UserTable";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/app/components/ui/use-toast";
 import GeneralStats from "./components/GeneralStats";
 import Navbar from "./components/Navbar";
 import RazaForm from './components/RazaForm';
@@ -20,6 +20,10 @@ import VacunaConfig from './components/configuracion/VacunaConfig';
 import ConfiguracionTabs from './components/configuracion/ConfiguracionTabs';
 import { Vacuna, PlanVacunacion, PlanNutricional } from './components/types/configuracion';
 import ReportesGenerales from './components/reportes/ReportesGenerales';
+import AlertasActivas from "./components/dashboard/AlertasActivas";
+import GraficasCrecimiento from "./components/dashboard/GraficasCrecimiento";
+import ResumenCostos from "./components/dashboard/ResumenCostos";
+import RegistroRazas from './components/registro/RegistroRazas';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('general');
@@ -179,38 +183,66 @@ const AdminDashboard = () => {
       .filter((alert): alert is StockAlertType => alert !== null);
   }, [products]);
 
-  // Agregar datos de ejemplo para reportes
-  const datosReportes = {
-    lotes: [
-      {
-        id: 1,
-        codigo: 'L001',
-        semana: 1,
-        peso: 0.5,
-        mortalidad: 2,
-        crecimiento: 0.3,
-        estadoSanitario: 'bueno'
-      },
-      {
-        id: 2,
-        codigo: 'L002',
-        semana: 2,
-        peso: 1.2,
-        mortalidad: 1,
-        crecimiento: 0.7,
-        estadoSanitario: 'bueno'
-      }
-    ],
-    costos: {
-      alimentacion: 1500,
-      medicinas: 500,
-      vacunas: 300,
-      total: 2300
+  // Datos de ejemplo para las gráficas de crecimiento
+  const datosCrecimiento = [
+    {
+      fecha: '2024-01-01',
+      peso: 0.5,
+      tamaño: 10,
+      loteId: 1,
+      nombreLote: 'Lote A'
     },
-    estadisticas: {
-      mortalidad: 3,
-      crecimientoPromedio: 0.5,
-      consumoAlimento: 2.1
+    {
+      fecha: '2024-01-15',
+      peso: 1.2,
+      tamaño: 15,
+      loteId: 1,
+      nombreLote: 'Lote A'
+    },
+    // Más datos...
+  ];
+
+  // Datos de ejemplo para las alertas
+  const alertas = [
+    {
+      id: 1,
+      tipo: 'mortalidad',
+      mensaje: 'Alta mortalidad detectada en Lote A',
+      fecha: '2024-03-15',
+      nivel: 'alta',
+      loteId: 1,
+      detalles: '5% de mortalidad en las últimas 24 horas'
+    },
+    {
+      id: 2,
+      tipo: 'enfermedad',
+      mensaje: 'Síntomas de gripe aviar detectados',
+      fecha: '2024-03-14',
+      nivel: 'media',
+      loteId: 2,
+      detalles: 'Se requiere revisión veterinaria urgente'
+    },
+    {
+      id: 3,
+      tipo: 'stock',
+      mensaje: 'Stock bajo de alimento tipo A',
+      fecha: '2024-03-13',
+      nivel: 'baja',
+      detalles: 'Quedan 100kg - Realizar pedido pronto'
+    }
+  ];
+
+  // Datos de ejemplo para los costos
+  const datosCostos = {
+    costos: {
+      alimentacion: 15000,
+      medicinas: 5000,
+      otros: 3000,
+      total: 23000
+    },
+    tendencia: {
+      porcentaje: 5.2,
+      direccion: 'up'
     }
   };
 
@@ -446,17 +478,30 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case 'general':
         return (
-          <GeneralStats
-            users={users}
-            pollos={pollos}
-            chanchos={chanchos}
-            mortalidadPollos={mortalidadPollos}
-            mortalidadChanchos={mortalidadChanchos}
-            costoAlimento={costoAlimento}
-            consumoDiarioAlimento={consumoDiarioAlimento}
-            precioVentaAnimal={precioVentaAnimal}
-          />
+          <div className="space-y-6">
+            {/* Grid de 2 columnas para estadísticas principales */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Gráficas de Crecimiento */}
+              <GraficasCrecimiento 
+                datos={datosCrecimiento}
+                lotes={[1, 2]} // IDs de los lotes activos
+              />
+              
+              {/* Alertas Activas */}
+              <AlertasActivas alertas={alertas} />
+            </div>
+
+            {/* Resumen de Costos en ancho completo */}
+            <ResumenCostos 
+              costos={datosCostos.costos}
+              tendencia={datosCostos.tendencia}
+            />
+
+            {/* Aquí puedes agregar más secciones según necesites */}
+          </div>
         );
+      case 'registro':
+        return <RegistroRazas />;
       case 'usuarios':
         return (
           <>
@@ -620,9 +665,13 @@ const AdminDashboard = () => {
       case 'reportes':
         return (
           <ReportesGenerales
-            lotes={datosReportes.lotes}
-            costos={datosReportes.costos}
-            estadisticas={datosReportes.estadisticas}
+            lotes={datosCrecimiento}
+            costos={datosCostos.costos}
+            estadisticas={datosCrecimiento.length > 0 ? {
+              mortalidad: 3,
+              crecimientoPromedio: datosCrecimiento.reduce((total, dato) => total + dato.peso, 0) / datosCrecimiento.length,
+              consumoAlimento: 2.1
+            } : undefined}
           />
         );
       default:
@@ -638,11 +687,10 @@ const AdminDashboard = () => {
         <h1 className="text-2xl font-bold mb-6">
           {activeTab === 'general' ? 'Dashboard' : 
            activeTab === 'usuarios' ? 'Usuarios' :
-           activeTab === 'razas' ? 'Razas' :
-           activeTab === 'pollos' ? 'Pollos' :
+           activeTab === 'registro' ? 'Registro de Razas' :
            activeTab === 'inventario' ? 'Inventario' :
            activeTab === 'configuracion' ? 'Configuración' :
-           activeTab === 'reportes' ? 'Reportes Generales' : 'Chanchos'}
+           activeTab === 'reportes' ? 'Reportes Generales' : ''}
         </h1>
         
         {renderContent()}

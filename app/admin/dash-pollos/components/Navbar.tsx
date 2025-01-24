@@ -1,55 +1,51 @@
 'use client';
 
-import { ClockIcon, CubeIcon, ChevronDownIcon } from '@heroicons/react/24/outline'; // Asegúrate de importar todos los íconos correctamente
+import { FC } from 'react';
+import { 
+  ClipboardList,
+  Utensils,
+  Pill
+} from 'lucide-react';
 
-const Navbar: React.FC<any> = ({ activeTab, setActiveTab, isMenuOpen, setIsMenuOpen }) => {
+interface NavbarProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+const Navbar: FC<NavbarProps> = ({ activeTab, onTabChange }) => {
+  const tabs = [
+    { id: 'registro', label: 'Registro', icon: <ClipboardList className="w-4 h-4 mr-2" /> },
+    { id: 'alimento', label: 'Alimento', icon: <Utensils className="w-4 h-4 mr-2" /> },
+    { id: 'medicina', label: 'Medicina', icon: <Pill className="w-4 h-4 mr-2" /> },
+  ];
+
   return (
-    <div>
-      {/* Menú Dashboard */}
-      <div
-        className={`mb-8 flex flex-col items-center ${activeTab === 'dashboard' ? 'text-white' : 'text-gray-400'}`}
-        onClick={() => setActiveTab('dashboard')}
-      >
-        <ClockIcon className="h-8 w-8 hover:text-white transition" />
-        <p className="text-xs mt-1 text-center">Dashboard</p>
-      </div>
-
-      {/* Registro con lista desplegable */}
-      <div
-        className="mb-8 flex flex-col items-center text-gray-400 cursor-pointer"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-      >
-        <div className="flex items-center space-x-1">
-          <CubeIcon className="h-8 w-8 hover:text-white transition" />
-          <ChevronDownIcon className="h-5 w-5 hover:text-white transition" />
-        </div>
-        <p className="text-xs mt-1 text-center">Registro</p>
-
-        {/* Opciones desplegables */}
-        {isMenuOpen && (
-          <div className="mt-2 bg-white shadow-lg rounded-md p-2 text-gray-700">
-            <div
-              className="hover:bg-gray-100 p-2 rounded cursor-pointer"
-              onClick={() => setActiveTab('registro-pollos')}
-            >
-              Pollo
-            </div>
-            <div
-              className="hover:bg-gray-100 p-2 rounded cursor-pointer"
-              onClick={() => setActiveTab('registro-alimentos')}
-            >
-              Alimento
-            </div>
-            <div
-              className="hover:bg-gray-100 p-2 rounded cursor-pointer"
-              onClick={() => setActiveTab('registro-medicinas')}
-            >
-              Medicina
-            </div>
+    <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm z-10">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <span className="text-xl font-bold text-purple-600">Gestión de Pollos</span>
           </div>
-        )}
+
+          {/* Navegación */}
+          <div className="flex items-center space-x-4">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => onTabChange(tab.id)}
+                className={`flex items-center px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 ${
+                  activeTab === tab.id ? 'bg-gray-100' : ''
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+    </nav>
   );
 };
 
