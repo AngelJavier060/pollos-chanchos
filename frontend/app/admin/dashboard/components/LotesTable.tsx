@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { Button } from "@/app/components/ui/button";
+import { Edit, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -9,19 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/components/ui/table";
-import { Button } from "@/app/components/ui/button";
-import { Edit2, Trash2 } from 'lucide-react';
 import { Lote } from '../types/lote';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/app/components/ui/alert-dialog";
 
 interface LotesTableProps {
   lotes: Lote[];
@@ -30,29 +19,20 @@ interface LotesTableProps {
   loading?: boolean;
 }
 
-export default function LotesTable({ lotes, onEdit, onDelete, loading }: LotesTableProps) {
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-
+const LotesTable = ({ lotes, onEdit, onDelete, loading }: LotesTableProps) => {
   const handleDelete = (id: number) => {
-    setDeleteId(id);
-  };
-
-  const confirmDelete = () => {
-    if (deleteId) {
-      onDelete(deleteId);
-      setDeleteId(null);
+    if (window.confirm('¿Estás seguro de que deseas eliminar este lote?')) {
+      onDelete(id);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES');
+  const formatDate = (date: string) => {
+    const d = new Date(date);
+    return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+    return `$${amount.toFixed(2)}`;
   };
 
   if (loading) {
@@ -60,16 +40,16 @@ export default function LotesTable({ lotes, onEdit, onDelete, loading }: LotesTa
   }
 
   return (
-    <>
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nombre</TableHead>
+            <TableHead>Nombre del Lote</TableHead>
             <TableHead>Tipo</TableHead>
-            <TableHead>Cantidad</TableHead>
+            <TableHead>Raza</TableHead>
+            <TableHead className="text-right">Cantidad</TableHead>
             <TableHead>Fecha Nacimiento</TableHead>
-            <TableHead>Costo</TableHead>
-            <TableHead>Estado</TableHead>
+            <TableHead className="text-right">Costo</TableHead>
             <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -77,30 +57,34 @@ export default function LotesTable({ lotes, onEdit, onDelete, loading }: LotesTa
           {lotes.map((lote) => (
             <TableRow key={lote.id}>
               <TableCell>{lote.nombre}</TableCell>
-              <TableCell>{lote.tipo_animal === 'POLLO' ? 'Pollos' : 'Chanchos'}</TableCell>
-              <TableCell>{lote.cantidad}</TableCell>
-              <TableCell>{formatDate(lote.fecha_nacimiento)}</TableCell>
-              <TableCell>{formatCurrency(lote.costo)}</TableCell>
               <TableCell>
                 <span className={`px-2 py-1 rounded-full text-xs ${
-                  lote.estado === 'ACTIVO' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  lote.tipo_animal === 'pollo' 
+                    ? 'bg-blue-100 text-blue-800' 
+                    : 'bg-green-100 text-green-800'
                 }`}>
-                  {lote.estado}
+                  {lote.tipo_animal === 'pollo' ? 'Pollo' : 'Chancho'}
                 </span>
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell>{lote.raza}</TableCell>
+              <TableCell className="text-right">{lote.cantidad}</TableCell>
+              <TableCell>{formatDate(lote.fecha_nacimiento)}</TableCell>
+              <TableCell className="text-right">{formatCurrency(lote.costo)}</TableCell>
+              <TableCell>
                 <div className="flex justify-end space-x-2">
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={() => onEdit(lote)}
+                    className="h-8 w-8 p-0"
                   >
-                    <Edit2 className="h-4 w-4" />
+                    <Edit className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={() => handleDelete(lote.id!)}
+                    className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -108,25 +92,17 @@ export default function LotesTable({ lotes, onEdit, onDelete, loading }: LotesTa
               </TableCell>
             </TableRow>
           ))}
+          {lotes.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-6 text-gray-500">
+                No hay lotes registrados
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
-
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente el lote.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    </div>
   );
-}
+};
+
+export default LotesTable;

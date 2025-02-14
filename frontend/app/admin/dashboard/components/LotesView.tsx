@@ -1,11 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/app/components/ui/button";
 import { Plus } from 'lucide-react';
-import { api } from '@/app/lib/api';
-import { toast } from "@/app/components/ui/use-toast";
-import { Lote } from '../types/lote';
 import LoteForm from './LoteForm';
 import LotesTable from './LotesTable';
 import {
@@ -17,114 +14,80 @@ import {
 } from "@/app/components/ui/dialog";
 
 const LotesView = () => {
-  const [lotes, setLotes] = useState<Lote[]>([]);
+  const [lotes, setLotes] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [editingLote, setEditingLote] = useState<Lote | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [editingLote, setEditingLote] = useState<any>(null);
 
-  const fetchLotes = async () => {
-    try {
-      setLoading(true);
-      const data = await api.get('/api/lotes');
-      setLotes(data);
-    } catch (error) {
-      console.error('Error al cargar lotes:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los lotes",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLotes();
-  }, []);
-
-  const handleSubmit = async (formData: Partial<Lote>) => {
+  const handleSubmit = async (formData: any) => {
     try {
       if (editingLote) {
-        await api.put(`/api/lotes/${editingLote.id}`, formData);
-        toast({
-          title: "Éxito",
-          description: "Lote actualizado correctamente",
-        });
+        setLotes(lotes.map(lote => 
+          lote.id === editingLote.id ? { ...formData, id: lote.id } : lote
+        ));
       } else {
-        await api.post('/api/lotes', formData);
-        toast({
-          title: "Éxito",
-          description: "Lote creado correctamente",
-        });
+        const newLote = {
+          ...formData,
+          id: Date.now()
+        };
+        setLotes([...lotes, newLote]);
       }
       setIsOpen(false);
       setEditingLote(null);
-      fetchLotes();
     } catch (error) {
       console.error('Error al guardar lote:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo guardar el lote",
-        variant: "destructive",
-      });
     }
-  };
-
-  const handleEdit = (lote: Lote) => {
-    setEditingLote(lote);
-    setIsOpen(true);
   };
 
   const handleDelete = async (id: number) => {
     try {
-      await api.delete(`/api/lotes/${id}`);
-      toast({
-        title: "Éxito",
-        description: "Lote eliminado correctamente",
-      });
-      fetchLotes();
+      setLotes(lotes.filter(lote => lote.id !== id));
     } catch (error) {
       console.error('Error al eliminar lote:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar el lote",
-        variant: "destructive",
-      });
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold tracking-tight">Registro de Lotes</h2>
-        <Button onClick={() => setIsOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Nuevo Lote
+        <h2 className="text-2xl font-bold text-gray-800">Registro de Lotes</h2>
+        <Button 
+          onClick={() => {
+            setEditingLote(null);
+            setIsOpen(true);
+          }}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Nuevo Lote
         </Button>
       </div>
 
-      <LotesTable
+      <LotesTable 
         lotes={lotes}
-        onEdit={handleEdit}
+        onEdit={(lote) => {
+          setEditingLote(lote);
+          setIsOpen(true);
+        }}
         onDelete={handleDelete}
-        loading={loading}
       />
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{editingLote ? 'Editar Lote' : 'Crear Nuevo Lote'}</DialogTitle>
+            <DialogTitle>
+              {editingLote ? 'Editar Lote' : 'Crear Nuevo Lote'}
+            </DialogTitle>
             <DialogDescription>
-              Complete el formulario para {editingLote ? 'actualizar el' : 'crear un nuevo'} lote.
+              Complete el formulario para {editingLote ? 'editar el' : 'crear un nuevo'} lote.
             </DialogDescription>
           </DialogHeader>
           <LoteForm
+            initialData={editingLote}
             onSubmit={handleSubmit}
             onCancel={() => {
               setIsOpen(false);
               setEditingLote(null);
             }}
-            initialData={editingLote || undefined}
           />
         </DialogContent>
       </Dialog>

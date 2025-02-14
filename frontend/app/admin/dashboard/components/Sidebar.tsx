@@ -13,14 +13,14 @@ import { clearSession } from "@/app/lib/auth";
 const menuItems = [
   { icon: Home, label: 'General', href: '/admin/dashboard' },
   { icon: Users, label: 'Usuarios', href: '/admin/dashboard/usuarios' },
-  { icon: DogIcon, label: 'Razas', href: '/admin/dashboard/razas' },
+  { icon: DogIcon, label: 'Lotes', href: '/admin/dashboard/razas' },
   { icon: Bird, label: 'Pollos', href: '/admin/dashboard/pollos' },
   { icon: PiggyBank, label: 'Chanchos', href: '/admin/dashboard/chanchos' },
   { icon: FileText, label: 'Reportes', href: '/admin/dashboard/reportes' },
   { icon: Settings, label: 'Configuración', href: '/admin/dashboard/configuracion' },
 ];
 
-export function Sidebar() {
+const Sidebar = () => {
   const pathname = usePathname();
 
   const handleLogout = () => {
@@ -29,34 +29,44 @@ export function Sidebar() {
   };
 
   return (
-    <div className="pb-12 min-h-screen">
-      <div className="space-y-4 py-4">
-        <div className="px-3 py-2">
-          <h2 className="mb-2 px-4 text-lg font-semibold">Panel Admin</h2>
-          <div className="space-y-1">
-            {menuItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                <Button
-                  variant={pathname === item.href ? "secondary" : "ghost"}
-                  className={cn("w-full justify-start", 
-                    pathname === item.href && "bg-primary/10")}
-                >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.label}
-                </Button>
-              </Link>
-            ))}
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-red-500 hover:text-red-500 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Cerrar Sesión
-            </Button>
-          </div>
+    <div className="space-y-4 py-4 flex flex-col h-full bg-gray-900">
+      <div className="px-3 py-2">
+        <Link href="/admin/dashboard">
+          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-white">
+            Sistema de Gestión
+          </h2>
+        </Link>
+        <div className="space-y-1">
+          {menuItems.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <Button
+                variant={pathname === item.href ? "secondary" : "ghost"}
+                size="sm"
+                className={cn("w-full justify-start", {
+                  'bg-gray-800 text-white hover:bg-gray-800': pathname === item.href,
+                  'text-gray-400 hover:text-white hover:bg-gray-800': pathname !== item.href
+                })}
+              >
+                <item.icon className="mr-2 h-4 w-4" />
+                {item.label}
+              </Button>
+            </Link>
+          ))}
         </div>
+      </div>
+      <div className="mt-auto px-3">
+        <Button
+          onClick={handleLogout}
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-gray-400 hover:text-white hover:bg-gray-800"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Cerrar Sesión
+        </Button>
       </div>
     </div>
   );
-} 
+};
+
+export default Sidebar;

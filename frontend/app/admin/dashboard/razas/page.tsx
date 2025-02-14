@@ -2,6 +2,6 @@
 
 import { LotesView } from '../components/LotesView';
 
-export default function LotesPage() {
+export default function RazasPage() {
   return <LotesView />;
 }

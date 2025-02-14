@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/app/components/ui/button";
 import { Plus } from 'lucide-react';
-import { api } from '@/app/lib/api';
 import { toast } from "@/app/components/ui/use-toast";
-import { Raza } from '../types/raza';
-import RazaForm from './RazaForm';
-import RazasTable from './RazasTable';
+import LoteForm from './LoteForm';
+import LotesTable from './LotesTable';
 import {
   Dialog,
   DialogContent,
@@ -16,125 +14,132 @@ import {
   DialogDescription,
 } from "@/app/components/ui/dialog";
 
-const RazasView = () => {
-  const [razas, setRazas] = useState<Raza[]>([]);
+// Datos de prueba para desarrollo frontend
+const datosLotePrueba = [
+  {
+    id: 1,
+    nombre: 'LOTE-2025-001',
+    tipo_animal: 'pollo',
+    cantidad: 100,
+    fecha_nacimiento: '2025-02-13',
+    costo: 500.00
+  },
+  {
+    id: 2,
+    nombre: 'LOTE-2025-002',
+    tipo_animal: 'chancho',
+    cantidad: 50,
+    fecha_nacimiento: '2025-02-12',
+    costo: 1500.00
+  }
+];
+
+const LotesView = () => {
+  const [lotes, setLotes] = useState(datosLotePrueba);
   const [isOpen, setIsOpen] = useState(false);
-  const [editingRaza, setEditingRaza] = useState<Raza | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [editingLote, setEditingLote] = useState<any>(null);
 
-  const fetchRazas = async () => {
+  const handleSubmit = async (formData: any) => {
     try {
-      setLoading(true);
-      const data = await api.get('/api/razas');
-      setRazas(data);
-    } catch (error) {
-      console.error('Error al cargar razas:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar las razas",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRazas();
-  }, []);
-
-  const handleSubmit = async (formData: FormData) => {
-    try {
-      if (editingRaza) {
-        await api.put(`/api/razas/${editingRaza.id}`, formData, true);
+      if (editingLote) {
+        // Simulación de actualización
+        setLotes(lotes.map(lote => 
+          lote.id === editingLote.id ? { ...formData, id: lote.id } : lote
+        ));
         toast({
           title: "Éxito",
-          description: "Raza actualizada correctamente",
+          description: "Lote actualizado correctamente",
         });
       } else {
-        await api.post('/api/razas', formData, true);
+        // Simulación de creación
+        const newLote = {
+          ...formData,
+          id: lotes.length + 1,
+          nombre: `LOTE-2025-${String(lotes.length + 1).padStart(3, '0')}`
+        };
+        setLotes([...lotes, newLote]);
         toast({
           title: "Éxito",
-          description: "Raza creada correctamente",
+          description: "Lote creado correctamente",
         });
       }
       setIsOpen(false);
-      fetchRazas();
     } catch (error) {
-      console.error('Error al guardar raza:', error);
+      console.error('Error al guardar lote:', error);
       toast({
         title: "Error",
-        description: "No se pudo guardar la raza",
+        description: "No se pudo guardar el lote",
         variant: "destructive",
       });
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('¿Estás seguro de eliminar esta raza?')) return;
+    if (!window.confirm('¿Estás seguro de eliminar este lote?')) return;
 
     try {
-      await api.delete(`/api/razas/${id}`);
+      // Simulación de eliminación
+      setLotes(lotes.filter(lote => lote.id !== id));
       toast({
         title: "Éxito",
-        description: "Raza eliminada correctamente",
+        description: "Lote eliminado correctamente",
       });
-      fetchRazas();
     } catch (error) {
-      console.error('Error al eliminar raza:', error);
+      console.error('Error al eliminar lote:', error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar la raza",
+        description: "No se pudo eliminar el lote",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div>
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Gestión de Razas</h2>
-        <Button onClick={() => {
-          setEditingRaza(null);
-          setIsOpen(true);
-        }}>
+        <h2 className="text-2xl font-bold text-gray-800">Registro de Lotes</h2>
+        <Button 
+          onClick={() => {
+            setEditingLote(null);
+            setIsOpen(true);
+          }}
+          className="bg-green-600 hover:bg-green-700"
+        >
           <Plus className="w-4 h-4 mr-2" />
-          Nueva Raza
+          Nuevo Lote
         </Button>
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
-              {editingRaza ? 'Editar Raza' : 'Crear Nueva Raza'}
+              {editingLote ? 'Editar Lote' : 'Crear Nuevo Lote'}
             </DialogTitle>
             <DialogDescription>
-              Complete el formulario para {editingRaza ? 'editar la' : 'crear una nueva'} raza.
+              Complete el formulario para {editingLote ? 'editar el' : 'crear un nuevo'} lote.
             </DialogDescription>
           </DialogHeader>
-          <RazaForm
+          <LoteForm
             onSubmit={handleSubmit}
-            initialData={editingRaza}
+            initialData={editingLote}
             onCancel={() => setIsOpen(false)}
           />
         </DialogContent>
       </Dialog>
 
-      {loading ? (
-        <div className="text-center py-4">Cargando razas...</div>
-      ) : (
-        <RazasTable
-          razas={razas}
-          onEdit={(raza) => {
-            setEditingRaza(raza);
+      <div className="bg-white rounded-lg shadow">
+        <LotesTable
+          lotes={lotes}
+          onEdit={(lote) => {
+            setEditingLote(lote);
             setIsOpen(true);
           }}
           onDelete={handleDelete}
         />
-      )}
+      </div>
     </div>
   );
 };
 
-export { RazasView }; 
+export { LotesView };

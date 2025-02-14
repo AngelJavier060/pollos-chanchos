@@ -1,90 +1,106 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/components/ui/select";
-import { Lote, TipoAnimal } from '../types/lote';
+import { Button } from "@/app/components/ui/button";
+import { Label } from "@/app/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import { api } from '@/app/lib/api';
 
 interface LoteFormProps {
-  onSubmit: (data: Partial<Lote>) => void;
+  onSubmit: (data: any) => void;
+  initialData?: any;
   onCancel: () => void;
-  initialData?: Lote;
 }
 
-export default function LoteForm({ onSubmit, onCancel, initialData }: LoteFormProps) {
-  const [formData, setFormData] = useState<Partial<Lote>>({
+const LoteForm = ({ onSubmit, initialData, onCancel }: LoteFormProps) => {
+  const [formData, setFormData] = useState({
     nombre: '',
-    tipo_animal: 'POLLO',
-    cantidad: 0,
+    tipo_animal: '',
+    raza: '',
+    cantidad: '',
     fecha_nacimiento: '',
-    costo: 0,
-    ...initialData
+    costo: ''
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        nombre: initialData.nombre || '',
+        tipo_animal: initialData.tipo_animal || '',
+        raza: initialData.raza || '',
+        cantidad: initialData.cantidad?.toString() || '',
+        fecha_nacimiento: initialData.fecha_nacimiento || '',
+        costo: initialData.costo?.toString() || ''
+      });
+    }
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      cantidad: parseInt(formData.cantidad),
+      costo: parseFloat(formData.costo)
+    });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
-          Nombre del Lote
-        </label>
+      <div className="space-y-2">
+        <Label htmlFor="nombre">Código de Lote</Label>
         <Input
           id="nombre"
           value={formData.nombre}
           onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-          placeholder="Ingrese el nombre del lote"
+          placeholder="Ingrese el código del lote (ej: P202502-001)"
           required
         />
       </div>
 
-      <div>
-        <label htmlFor="tipo_animal" className="block text-sm font-medium text-gray-700">
-          Tipo de Animal
-        </label>
+      <div className="space-y-2">
+        <Label htmlFor="tipo_animal">Tipo de Animal</Label>
         <Select
           value={formData.tipo_animal}
-          onValueChange={(value: TipoAnimal) => setFormData({ ...formData, tipo_animal: value })}
+          onValueChange={(value) => setFormData({ ...formData, tipo_animal: value })}
+          required
         >
           <SelectTrigger>
-            <SelectValue placeholder="Seleccione tipo" />
+            <SelectValue placeholder="Seleccione el tipo de animal" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="POLLO">Pollos</SelectItem>
-            <SelectItem value="CHANCHO">Chanchos</SelectItem>
+            <SelectItem value="pollo">Pollo</SelectItem>
+            <SelectItem value="chancho">Chancho</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div>
-        <label htmlFor="cantidad" className="block text-sm font-medium text-gray-700">
-          Cantidad de Lote
-        </label>
+      <div className="space-y-2">
+        <Label htmlFor="raza">Raza</Label>
+        <Input
+          id="raza"
+          value={formData.raza}
+          onChange={(e) => setFormData({ ...formData, raza: e.target.value })}
+          placeholder="Ingrese la raza"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="cantidad">Cantidad</Label>
         <Input
           id="cantidad"
           type="number"
           min="1"
           value={formData.cantidad}
-          onChange={(e) => setFormData({ ...formData, cantidad: parseInt(e.target.value) })}
+          onChange={(e) => setFormData({ ...formData, cantidad: e.target.value })}
           placeholder="Ingrese la cantidad"
           required
         />
       </div>
 
-      <div>
-        <label htmlFor="fecha_nacimiento" className="block text-sm font-medium text-gray-700">
-          Fecha de Nacimiento
-        </label>
+      <div className="space-y-2">
+        <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento</Label>
         <Input
           id="fecha_nacimiento"
           type="date"
@@ -94,30 +110,30 @@ export default function LoteForm({ onSubmit, onCancel, initialData }: LoteFormPr
         />
       </div>
 
-      <div>
-        <label htmlFor="costo" className="block text-sm font-medium text-gray-700">
-          Costo del Lote
-        </label>
+      <div className="space-y-2">
+        <Label htmlFor="costo">Costo (USD)</Label>
         <Input
           id="costo"
           type="number"
-          step="0.01"
           min="0"
+          step="0.01"
           value={formData.costo}
-          onChange={(e) => setFormData({ ...formData, costo: parseFloat(e.target.value) })}
-          placeholder="Ingrese el costo"
+          onChange={(e) => setFormData({ ...formData, costo: e.target.value })}
+          placeholder="Ingrese el costo en dólares"
           required
         />
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end space-x-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
         <Button type="submit">
-          {initialData ? 'Actualizar' : 'Crear'}
+          Guardar
         </Button>
       </div>
     </form>
   );
-}
+};
+
+export default LoteForm;

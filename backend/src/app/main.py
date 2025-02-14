@@ -7,7 +7,7 @@ from pathlib import Path
 # Añadir el directorio raíz al path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.routes import auth
+from src.routes import auth, razas
 from src.database import engine, Base
 from src.config import settings
 
@@ -28,6 +28,9 @@ app.add_middleware(
 # Incluir las rutas de autenticación
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])  # Ruta adicional para compatibilidad
+
+# Incluir las rutas de razas
+app.include_router(razas.router, tags=["razas"])
 
 @app.on_event("startup")
 def startup():

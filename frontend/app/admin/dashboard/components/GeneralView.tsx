@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from "@/app/components/ui/card";
 import { DashboardCharts } from '@/app/components/charts/DashboardCharts';
-import { NotificacionesList } from '@/app/components/NotificacionesList';
 import { 
   Users, PiggyBank, Bird, DollarSign, 
   TrendingUp, ShoppingCart, AlertCircle, 
@@ -69,10 +68,10 @@ export const GeneralView = () => {
       setStats(prev => ({
         ...prev,
         usuarios: {
-          total: usuariosData.total || 0,
-          activos: usuariosData.activos || 0,
-          conectados: usuariosData.conectados || 0,
-          porExpirar: usuariosData.porExpirar || 0
+          total: usuariosData?.total ?? 0,
+          activos: usuariosData?.activos ?? 0,
+          conectados: usuariosData?.conectados ?? 0,
+          porExpirar: usuariosData?.porExpirar ?? 0
         }
       }));
     } catch (error) {
@@ -100,14 +99,16 @@ export const GeneralView = () => {
         
         // Solo sumar los costos unitarios
         let total = 0;
-        productos.forEach((producto: any) => {
-          if (producto.estado) {
-            const precioUnitario = Number(producto.precio_unitario);
-            total += precioUnitario;
-            
-            console.log('Precio unitario de:', producto.nombre, ':', precioUnitario);
-          }
-        });
+        if (productos) {
+          productos.forEach((producto: any) => {
+            if (producto.estado) {
+              const precioUnitario = Number(producto.precio_unitario);
+              total += precioUnitario;
+              
+              console.log('Precio unitario de:', producto.nombre, ':', precioUnitario);
+            }
+          });
+        }
 
         console.log('Total de costos unitarios:', total);
         setInversionTotal(total);
@@ -136,17 +137,17 @@ export const GeneralView = () => {
       const productos = await api.get('/inventario/productos');
       
       // Agrupar por mes y tipo de animal
-      const costosPorMes = productos.reduce((acc: any[], producto: any) => {
+      const costosPorMes = productos?.reduce((acc: any[], producto: any) => {
         if (producto.estado) {
           const fecha = new Date(producto.fecha_compra);
           acc.push({
-            fecha,
-            tipo_animal: producto.tipo_animal,
-            costo: Number(producto.precio_unitario)
+            mes: fecha.getMonth(),
+            tipo: producto.tipo_animal,
+            monto: producto.precio_unitario
           });
         }
         return acc;
-      }, []);
+      }, []) ?? [];
 
       setCostosData(costosPorMes);
     } catch (error) {
@@ -164,6 +165,8 @@ export const GeneralView = () => {
       currency: 'PEN'
     }).format(amount);
   };
+
+  const costoTotal = costosData?.reduce((acc, costo) => acc + costo.monto, 0) ?? 0;
 
   return (
     <div className="space-y-6">
@@ -276,7 +279,7 @@ export const GeneralView = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <NotificacionesList limit={5} />
+            {/* Se ha removido el componente NotificacionesList */}
           </CardContent>
         </Card>
       </div>
