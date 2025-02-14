@@ -1,5 +1,11 @@
 import { authService } from './auth';
 
+interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+}
+
 // API client class
 export class ApiClient {
   private baseUrl = 'http://localhost:8000';
@@ -17,24 +23,46 @@ export class ApiClient {
     return headers;
   }
 
-  public async get(url: string) {
+  private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      return {
+        success: false,
+        message: errorData?.message || `Error: ${response.status} ${response.statusText}`
+      };
+    }
+
+    try {
+      const data = await response.json();
+      return {
+        success: true,
+        data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Error al procesar la respuesta del servidor'
+      };
+    }
+  }
+
+  public async get<T>(url: string): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseUrl}${url}`, {
         method: 'GET',
         headers: this.getHeaders()
       });
 
-      if (!response.ok) {
-        return null;
-      }
-
-      return await response.json();
+      return await this.handleResponse<T>(response);
     } catch (error) {
-      return null;
+      return {
+        success: false,
+        message: 'Error de conexión'
+      };
     }
   }
 
-  public async post(url: string, data: any) {
+  public async post<T>(url: string, data: any): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseUrl}${url}`, {
         method: 'POST',
@@ -42,17 +70,16 @@ export class ApiClient {
         body: JSON.stringify(data)
       });
 
-      if (!response.ok) {
-        return null;
-      }
-
-      return await response.json();
+      return await this.handleResponse<T>(response);
     } catch (error) {
-      return null;
+      return {
+        success: false,
+        message: 'Error de conexión'
+      };
     }
   }
 
-  public async put(url: string, data: any) {
+  public async put<T>(url: string, data: any): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseUrl}${url}`, {
         method: 'PUT',
@@ -60,30 +87,28 @@ export class ApiClient {
         body: JSON.stringify(data)
       });
 
-      if (!response.ok) {
-        return null;
-      }
-
-      return await response.json();
+      return await this.handleResponse<T>(response);
     } catch (error) {
-      return null;
+      return {
+        success: false,
+        message: 'Error de conexión'
+      };
     }
   }
 
-  public async delete(url: string) {
+  public async delete<T>(url: string): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseUrl}${url}`, {
         method: 'DELETE',
         headers: this.getHeaders()
       });
 
-      if (!response.ok) {
-        return null;
-      }
-
-      return await response.json();
+      return await this.handleResponse<T>(response);
     } catch (error) {
-      return null;
+      return {
+        success: false,
+        message: 'Error de conexión'
+      };
     }
   }
 }

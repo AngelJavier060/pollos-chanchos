@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Input } from "@/app/components/ui/input";
 import {
   Table,
@@ -10,11 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/components/ui/table";
-import { Search, Pencil, Trash2 } from "lucide-react";
+import { Search, Pencil, Trash2, Plus } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Producto } from '../../types/inventario';
-import { api } from '@/app/lib/api';
-import { toast } from "@/app/components/ui/use-toast";
 import ProductoForm from './ProductoForm';
 
 export default function InventarioList() {
@@ -24,63 +22,60 @@ export default function InventarioList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProductos();
+  const fetchProductos = useCallback(() => {
+    const storedProducts = localStorage.getItem('productos');
+    if (storedProducts) {
+      setProductos(JSON.parse(storedProducts));
+    }
+    setLoading(false);
   }, []);
 
-  const fetchProductos = async () => {
-    setLoading(true);
-    try {
-      const data = await api.get('/api/inventario/productos');
-      setProductos(data || []);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo cargar el inventario",
-        variant: "destructive",
-      });
-      setProductos([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchProductos();
+  }, [fetchProductos]);
 
-  const filteredProducts = productos?.filter(producto =>
-    producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    producto.tipo.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
-
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('¿Está seguro de eliminar este producto?')) {
-      return;
-    }
-    
+  const handleSubmit = useCallback((data: any) => {
     try {
-      const response = await api.delete(`/api/inventario/productos/${id}`);
-      if (response.success) {
-        if (response.productos) {
-          setProductos(response.productos);
-        } else {
-          await fetchProductos();
-        }
-        
-        toast({
-          title: "Éxito",
-          description: "Producto eliminado correctamente",
-        });
+      let updatedProducts;
+
+      if (editingProduct) {
+        updatedProducts = productos.map((producto) => 
+          producto.id === editingProduct.id ? { ...producto, ...data } : producto
+        );
+      } else {
+        const newProduct = { ...data, id: Date.now() };
+        updatedProducts = [...productos, newProduct];
       }
+
+      localStorage.setItem('productos', JSON.stringify(updatedProducts));
+      setProductos(updatedProducts);
+      setIsOpen(false);
+      setEditingProduct(null);
     } catch (error) {
-      console.error('Error al eliminar:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar el producto",
-        variant: "destructive",
-      });
+      console.error('Error al guardar el producto:', error);
     }
-  };
+  }, [editingProduct, productos]);
+
+  const handleDelete = useCallback((id: number) => {
+    const updatedProducts = productos.filter(producto => producto.id !== id);
+    localStorage.setItem('productos', JSON.stringify(updatedProducts));
+    setProductos(updatedProducts);
+  }, [productos]);
+
+  const filteredProducts = useMemo(() => {
+    return productos.filter(producto =>
+      producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      producto.tipo.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [productos, searchTerm]);
 
   if (loading) {
-    return <div className="flex justify-center items-center p-8">Cargando inventario...</div>;
+    return (
+      <div className="flex justify-center items-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <span className="ml-2">Cargando inventario...</span>
+      </div>
+    );
   }
 
   return (
@@ -102,6 +97,7 @@ export default function InventarioList() {
           }}
           className="bg-green-600 hover:bg-green-700"
         >
+          <Plus className="w-4 h-4 mr-2" />
           Nuevo Producto
         </Button>
       </div>
@@ -134,9 +130,9 @@ export default function InventarioList() {
                   <TableCell>{producto.nombre}</TableCell>
                   <TableCell>{producto.detalle}</TableCell>
                   <TableCell>{producto.tipo}</TableCell>
-                  <TableCell>{producto.para}</TableCell>
+                  <TableCell>{producto.tipo_animal}</TableCell>
                   <TableCell>{producto.cantidad}</TableCell>
-                  <TableCell>{producto.unidad}</TableCell>
+                  <TableCell>{producto.unidad_medida}</TableCell>
                   <TableCell>${producto.precio_unitario}</TableCell>
                   <TableCell>{producto.proveedor}</TableCell>
                   <TableCell className="text-right">
@@ -168,42 +164,15 @@ export default function InventarioList() {
         </Table>
       </div>
 
-      {isOpen && (
-        <ProductoForm
-          isOpen={isOpen}
-          onClose={() => {
-            setIsOpen(false);
-            setEditingProduct(null);
-          }}
-          onSubmit={async (data) => {
-            try {
-              if (editingProduct) {
-                await api.put(`/api/inventario/productos/${editingProduct.id}`, data);
-                toast({
-                  title: "Éxito",
-                  description: "Producto actualizado correctamente",
-                });
-              } else {
-                await api.post('/api/inventario/productos', data);
-                toast({
-                  title: "Éxito",
-                  description: "Producto creado correctamente",
-                });
-              }
-              await fetchProductos();
-              setIsOpen(false);
-              setEditingProduct(null);
-            } catch (error) {
-              toast({
-                title: "Error",
-                description: "No se pudo guardar el producto",
-                variant: "destructive",
-              });
-            }
-          }}
-          initialData={editingProduct}
-        />
-      )}
+      <ProductoForm
+        isOpen={isOpen}
+        onClose={() => {
+          setIsOpen(false);
+          setEditingProduct(null);
+        }}
+        initialData={editingProduct}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

@@ -6,8 +6,6 @@ import { Progress } from "@/app/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/app/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Producto, StockAlert } from '../../types/inventario';
-import { api } from '@/app/lib/api';
-import { toast } from "@/app/components/ui/use-toast";
 
 export default function ControlStock() {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -18,29 +16,17 @@ export default function ControlStock() {
     fetchAlertas();
   }, []);
 
-  const fetchProductos = async () => {
-    try {
-      const data = await api.get('/api/inventario/productos');
-      setProductos(data);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo cargar el inventario",
-        variant: "destructive",
-      });
+  const fetchProductos = () => {
+    const storedProducts = localStorage.getItem('productos');
+    if (storedProducts) {
+      setProductos(JSON.parse(storedProducts));
     }
   };
 
-  const fetchAlertas = async () => {
-    try {
-      const data = await api.get('/api/inventario/alertas');
-      setAlertas(data);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar las alertas",
-        variant: "destructive",
-      });
+  const fetchAlertas = () => {
+    const storedAlertas = localStorage.getItem('alertas');
+    if (storedAlertas) {
+      setAlertas(JSON.parse(storedAlertas));
     }
   };
 
@@ -107,4 +93,4 @@ export default function ControlStock() {
       </div>
     </div>
   );
-} 
+}

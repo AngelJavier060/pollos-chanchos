@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/app/components/ui/button";
 import { Plus } from 'lucide-react';
 import LoteForm from './LoteForm';
@@ -13,18 +13,48 @@ import {
   DialogDescription,
 } from "@/app/components/ui/dialog";
 
+// Función para cargar datos del localStorage
+const loadLotesFromStorage = () => {
+  if (typeof window !== 'undefined') {
+    const savedLotes = localStorage.getItem('lotes');
+    return savedLotes ? JSON.parse(savedLotes) : [];
+  }
+  return [];
+};
+
+// Función para guardar datos en localStorage
+const saveLotesToStorage = (lotes: any[]) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('lotes', JSON.stringify(lotes));
+  }
+};
+
 const LotesView = () => {
-  const [lotes, setLotes] = useState([]);
+  const [lotes, setLotes] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editingLote, setEditingLote] = useState<any>(null);
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    const savedLotes = loadLotesFromStorage();
+    setLotes(savedLotes);
+  }, []);
+
+  // Guardar datos cuando cambian
+  useEffect(() => {
+    saveLotesToStorage(lotes);
+  }, [lotes]);
 
   const handleSubmit = async (formData: any) => {
     try {
       if (editingLote) {
-        setLotes(lotes.map(lote => 
+        console.log('Actualizando lote:', formData);
+        const updatedLotes = lotes.map(lote => 
           lote.id === editingLote.id ? { ...formData, id: lote.id } : lote
-        ));
+        );
+        setLotes(updatedLotes);
       } else {
+        console.log('Creando nuevo lote:', formData);
         const newLote = {
           ...formData,
           id: Date.now()
@@ -38,9 +68,16 @@ const LotesView = () => {
     }
   };
 
+  const handleEdit = (lote: any) => {
+    console.log('Editando lote:', lote);
+    setEditingLote(lote);
+    setIsOpen(true);
+  };
+
   const handleDelete = async (id: number) => {
     try {
-      setLotes(lotes.filter(lote => lote.id !== id));
+      const updatedLotes = lotes.filter(lote => lote.id !== id);
+      setLotes(updatedLotes);
     } catch (error) {
       console.error('Error al eliminar lote:', error);
     }
@@ -64,10 +101,7 @@ const LotesView = () => {
 
       <LotesTable 
         lotes={lotes}
-        onEdit={(lote) => {
-          setEditingLote(lote);
-          setIsOpen(true);
-        }}
+        onEdit={handleEdit}
         onDelete={handleDelete}
       />
 

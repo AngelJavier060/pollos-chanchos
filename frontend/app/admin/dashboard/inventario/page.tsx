@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import InventarioList from '../components/inventario/InventarioList';
-import RegistroCompras from '../components/inventario/RegistroCompras';
 import ControlStock from '../components/inventario/ControlStock';
 
 export default function InventarioPage() {
@@ -16,22 +14,17 @@ export default function InventarioPage() {
       <Tabs defaultValue="inventario" className="space-y-4">
         <TabsList>
           <TabsTrigger value="inventario">Inventario</TabsTrigger>
-          <TabsTrigger value="compras">Registrar Compras</TabsTrigger>
           <TabsTrigger value="stock">Control de Stock</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="inventario">
+        <TabsContent value="inventario" className="space-y-4">
           <InventarioList />
         </TabsContent>
 
-        <TabsContent value="compras">
-          <RegistroCompras />
-        </TabsContent>
-
-        <TabsContent value="stock">
+        <TabsContent value="stock" className="space-y-4">
           <ControlStock />
         </TabsContent>
       </Tabs>
     </div>
   );
-} 
+}

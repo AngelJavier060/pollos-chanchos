@@ -15,34 +15,47 @@ interface LoteFormProps {
 
 const LoteForm = ({ onSubmit, initialData, onCancel }: LoteFormProps) => {
   const [formData, setFormData] = useState({
-    nombre: '',
-    tipo_animal: '',
-    raza: '',
-    cantidad: '',
-    fecha_nacimiento: '',
-    costo: ''
+    nombre: initialData?.nombre || '',
+    tipo_animal: initialData?.tipo_animal || '',
+    raza: initialData?.raza || '',
+    cantidad: initialData?.cantidad?.toString() || '',
+    fecha_nacimiento: initialData?.fecha_nacimiento || '',
+    costo: initialData?.costo?.toString() || ''
   });
 
   useEffect(() => {
     if (initialData) {
+      console.log('Cargando datos iniciales:', initialData);
       setFormData({
         nombre: initialData.nombre || '',
         tipo_animal: initialData.tipo_animal || '',
         raza: initialData.raza || '',
-        cantidad: initialData.cantidad?.toString() || '',
+        cantidad: String(initialData.cantidad || ''),
         fecha_nacimiento: initialData.fecha_nacimiento || '',
-        costo: initialData.costo?.toString() || ''
+        costo: String(initialData.costo || '')
       });
     }
   }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+    
+    // Validar que todos los campos requeridos estén llenos
+    if (!formData.nombre || !formData.tipo_animal || !formData.raza || 
+        !formData.cantidad || !formData.fecha_nacimiento || !formData.costo) {
+      alert('Por favor complete todos los campos requeridos');
+      return;
+    }
+
+    const submissionData = {
       ...formData,
-      cantidad: parseInt(formData.cantidad),
-      costo: parseFloat(formData.costo)
-    });
+      id: initialData?.id,
+      cantidad: Number(formData.cantidad),
+      costo: Number(formData.costo)
+    };
+
+    console.log('Enviando datos:', submissionData);
+    onSubmit(submissionData);
   };
 
   return (
@@ -63,9 +76,8 @@ const LoteForm = ({ onSubmit, initialData, onCancel }: LoteFormProps) => {
         <Select
           value={formData.tipo_animal}
           onValueChange={(value) => setFormData({ ...formData, tipo_animal: value })}
-          required
         >
-          <SelectTrigger>
+          <SelectTrigger id="tipo_animal">
             <SelectValue placeholder="Seleccione el tipo de animal" />
           </SelectTrigger>
           <SelectContent>
@@ -129,7 +141,7 @@ const LoteForm = ({ onSubmit, initialData, onCancel }: LoteFormProps) => {
           Cancelar
         </Button>
         <Button type="submit">
-          Guardar
+          {initialData ? 'Actualizar' : 'Crear'}
         </Button>
       </div>
     </form>
