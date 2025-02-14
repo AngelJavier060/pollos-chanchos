@@ -34,7 +34,10 @@ const GraficasCrecimiento: FC<GraficasCrecimientoProps> = ({ datos, lotes }) => 
       <h2 className="text-xl font-semibold mb-4">Gráficas de Crecimiento</h2>
       <div className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={datos}>
+          <LineChart data={datos.map((dato, index) => ({
+            ...dato,
+            key: `dato-${index}`
+          }))}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="fecha" />
             <YAxis yAxisId="peso" label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft' }} />

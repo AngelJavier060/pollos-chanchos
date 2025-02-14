@@ -1,60 +1,171 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import VacunaConfig from './VacunaConfig';
 import PlanNutricionalComponent from './PlanNutricional';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Vacuna, PlanVacunacion, PlanNutricional, Raza } from '../types/configuracion';
+import ParametrosCrecimiento from './ParametrosCrecimiento';
+import { api } from '@/app/lib/api';
+import { toast } from "@/app/components/ui/use-toast";
+import { Vacuna, PlanVacunacion, PlanNutricional as IPlanNutricional, Raza } from '../types/configuracion';
 
-interface ConfiguracionTabsProps {
-  // Props de VacunaConfig
-  vacunas: Vacuna[];
-  planesVacunacion: PlanVacunacion[];
-  razas: Raza[];
-  onAddVacuna: (vacuna: Partial<Vacuna>) => void;
-  onUpdateVacuna: (id: number, vacuna: Partial<Vacuna>) => void;
-  onDeleteVacuna: (id: number) => void;
-  onAddPlanVacunacion: (plan: Partial<PlanVacunacion>) => void;
-  onUpdatePlanVacunacion: (id: number, plan: Partial<PlanVacunacion>) => void;
-  onDeletePlanVacunacion: (id: number) => void;
-  
-  // Props de PlanNutricional
-  planesNutricionales: PlanNutricional[];
-  onAddPlanNutricional: (plan: Partial<PlanNutricional>) => void;
-  onUpdatePlanNutricional: (id: number, plan: Partial<PlanNutricional>) => void;
-  onDeletePlanNutricional: (id: number) => void;
-}
+const ConfiguracionTabs: FC = () => {
+  const [vacunas, setVacunas] = useState<Vacuna[]>([]);
+  const [planesVacunacion, setPlanesVacunacion] = useState<PlanVacunacion[]>([]);
+  const [planesNutricionales, setPlanesNutricionales] = useState<IPlanNutricional[]>([]);
+  const [razas, setRazas] = useState<Raza[]>([]);
 
-const ConfiguracionTabs: FC<ConfiguracionTabsProps> = (props) => {
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const cargarDatos = async () => {
+    try {
+      const [vacunasData, planesVacData, planesNutData, razasData] = await Promise.all([
+        api.get('/api/vacunas'),
+        api.get('/api/planes-vacunacion'),
+        api.get('/api/planes-nutricionales'),
+        api.get('/api/razas')
+      ]);
+
+      setVacunas(vacunasData);
+      setPlanesVacunacion(planesVacData);
+      setPlanesNutricionales(planesNutData);
+      setRazas(razasData);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los datos de configuración",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <Tabs defaultValue="vacunas">
-      <TabsList className="mb-4">
+    <Tabs defaultValue="vacunas" className="space-y-4">
+      <TabsList>
         <TabsTrigger value="vacunas">Vacunas</TabsTrigger>
         <TabsTrigger value="nutricion">Planes Nutricionales</TabsTrigger>
+        <TabsTrigger value="crecimiento">Parámetros de Crecimiento</TabsTrigger>
       </TabsList>
-      
+
       <TabsContent value="vacunas">
         <VacunaConfig
-          vacunas={props.vacunas}
-          planesVacunacion={props.planesVacunacion}
-          razas={props.razas}
-          onAddVacuna={props.onAddVacuna}
-          onUpdateVacuna={props.onUpdateVacuna}
-          onDeleteVacuna={props.onDeleteVacuna}
-          onAddPlan={props.onAddPlanVacunacion}
-          onUpdatePlan={props.onUpdatePlanVacunacion}
-          onDeletePlan={props.onDeletePlanVacunacion}
+          vacunas={vacunas}
+          planesVacunacion={planesVacunacion}
+          razas={razas}
+          onAddVacuna={async (vacuna) => {
+            try {
+              const response = await api.post('/api/vacunas', vacuna);
+              setVacunas([...vacunas, response]);
+              toast({
+                title: "Éxito",
+                description: "Vacuna agregada correctamente",
+              });
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "No se pudo agregar la vacuna",
+                variant: "destructive",
+              });
+            }
+          }}
+          onUpdateVacuna={async (id, vacuna) => {
+            try {
+              const response = await api.put(`/api/vacunas/${id}`, vacuna);
+              setVacunas(vacunas.map(v => v.id === id ? response : v));
+              toast({
+                title: "Éxito",
+                description: "Vacuna actualizada correctamente",
+              });
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "No se pudo actualizar la vacuna",
+                variant: "destructive",
+              });
+            }
+          }}
+          onDeleteVacuna={async (id) => {
+            try {
+              await api.delete(`/api/vacunas/${id}`);
+              setVacunas(vacunas.filter(v => v.id !== id));
+              toast({
+                title: "Éxito",
+                description: "Vacuna eliminada correctamente",
+              });
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "No se pudo eliminar la vacuna",
+                variant: "destructive",
+              });
+            }
+          }}
         />
       </TabsContent>
-      
+
       <TabsContent value="nutricion">
         <PlanNutricionalComponent
-          planes={props.planesNutricionales}
-          razas={props.razas}
-          onAddPlan={props.onAddPlanNutricional}
-          onUpdatePlan={props.onUpdatePlanNutricional}
-          onDeletePlan={props.onDeletePlanNutricional}
+          planes={planesNutricionales}
+          razas={razas}
+          onAddPlan={async (plan) => {
+            try {
+              const response = await api.post('/api/planes-nutricionales', plan);
+              setPlanesNutricionales([...planesNutricionales, response]);
+              toast({
+                title: "Éxito",
+                description: "Plan nutricional agregado correctamente",
+              });
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "No se pudo agregar el plan nutricional",
+                variant: "destructive",
+              });
+            }
+          }}
+          onUpdatePlan={async (id, plan) => {
+            try {
+              const response = await api.put(`/api/planes-nutricionales/${id}`, plan);
+              setPlanesNutricionales(planes => 
+                planes.map(p => p.id === id ? response : p)
+              );
+              toast({
+                title: "Éxito",
+                description: "Plan nutricional actualizado correctamente",
+              });
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "No se pudo actualizar el plan nutricional",
+                variant: "destructive",
+              });
+            }
+          }}
+          onDeletePlan={async (id) => {
+            try {
+              await api.delete(`/api/planes-nutricionales/${id}`);
+              setPlanesNutricionales(planes => 
+                planes.filter(p => p.id !== id)
+              );
+              toast({
+                title: "Éxito",
+                description: "Plan nutricional eliminado correctamente",
+              });
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "No se pudo eliminar el plan nutricional",
+                variant: "destructive",
+              });
+            }
+          }}
         />
+      </TabsContent>
+
+      <TabsContent value="crecimiento">
+        <ParametrosCrecimiento razas={razas} />
       </TabsContent>
     </Tabs>
   );

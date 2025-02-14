@@ -1,73 +1,143 @@
 'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";  // Usamos useRouter de Next.js para la redirección
-import { Button } from "@/components/ui/button"; // Asegúrate de tener estos componentes
-import { Input } from "@/components/ui/input"; // Asegúrate de tener estos componentes
-import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
-import { User } from "lucide-react";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { toast } from "@/app/components/ui/use-toast";
+import Link from 'next/link';
+import { authService } from '@/app/lib/auth';
 
-const AdminLogin = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+export default function AdminLogin() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
 
-  const handleLogin = () => {
-    setError(""); // Limpiar el mensaje de error
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-    // Lógica de autenticación (esto debe ser reemplazado por una verificación real)
-    if (username === "admin" && password === "12345") {
-      // Autenticación exitosa
-      localStorage.setItem("userType", "admin"); // Guardar el tipo de usuario en el localStorage (si es necesario)
-      router.push("/admin/dashboard"); // Redirigir al dashboard del administrador
-    } else {
-      // Autenticación fallida
-      setError("Credenciales incorrectas. Intenta nuevamente.");
+    try {
+      // Validar campos
+      if (!formData.username || !formData.password) {
+        toast({
+          title: "Error",
+          description: "Por favor complete todos los campos",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Enviando datos:', {
+        username: formData.username,
+        password: formData.password
+      });
+
+      // Crear FormData para enviar
+      const formDataToSend = new URLSearchParams();
+      formDataToSend.append('username', formData.username);
+      formDataToSend.append('password', formData.password);
+      formDataToSend.append('grant_type', 'password');
+
+      // Realizar login usando fetch
+      const response = await fetch('http://localhost:8000/api/v1/auth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formDataToSend
+      });
+
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Error al iniciar sesión');
+      }
+
+      if (data.access_token) {
+        // Guardar datos de autenticación
+        authService.setAuthData({
+          access_token: data.access_token,
+          token_type: data.token_type
+        });
+
+        toast({
+          title: "¡Bienvenido!",
+          description: "Inicio de sesión exitoso",
+        });
+
+        // Redirigir al dashboard
+        router.push('/admin/dashboard');
+      } else {
+        throw new Error('No se recibió el token de acceso');
+      }
+    } catch (error: any) {
+      console.error('Error en login:', error);
+      
+      toast({
+        title: "Error",
+        description: error.message || "Error al iniciar sesión",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <Card className="w-[350px]">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-2">
-            <User className="h-6 w-6 text-blue-500" />
+      <div className="bg-white p-8 rounded-lg shadow-md w-96">
+        <h1 className="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h1>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              Usuario
+            </label>
+            <Input
+              id="username"
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              placeholder="Ingrese su usuario"
+              className="mt-1"
+            />
           </div>
-          <CardTitle>Acceso Administrador</CardTitle>
-          <CardDescription>Portal de administración general</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-center">
-              {error}
-            </div>
-          )}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type="text"
-                placeholder="Usuario"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <Button type="button" onClick={handleLogin} className="w-full">
-              Ingresar
-            </Button>
+          
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Contraseña
+            </label>
+            <Input
+              id="password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              placeholder="Ingrese su contraseña"
+              className="mt-1"
+            />
           </div>
-        </CardContent>
-      </Card>
+          
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+          </Button>
+        </form>
+        
+        <div className="mt-4 text-center">
+          <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default AdminLogin;
+}

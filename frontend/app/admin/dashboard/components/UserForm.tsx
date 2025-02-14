@@ -1,169 +1,149 @@
 'use client';
 
-import { FC, useState, useEffect } from 'react';
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Select } from "./ui/select";
-import { User } from './types/user';
+import { useState } from 'react';
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import { Switch } from "@/app/components/ui/switch";
+import { toast } from "@/app/components/ui/use-toast";
+import { User } from '../types/user';
 
 interface UserFormProps {
-  onSubmit: (data: Partial<User>) => void;
-  initialData?: User | null;
+  initialData?: Partial<User>;
+  onSubmit: (data: any) => void;
 }
 
-const UserForm: FC<UserFormProps> = ({ onSubmit, initialData }) => {
+const UserForm = ({ initialData, onSubmit }: UserFormProps) => {
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    nombreUsuario: '',
-    email: '',
+    nombre: initialData?.nombre || '',
+    apellido: initialData?.apellido || '',
+    usuario: initialData?.usuario || '',
+    correo: initialData?.correo || '',
     password: '',
-    rol: 'usuario',
-    vigencia: 30,
+    rol: initialData?.rol || 'admin',
+    vigencia: initialData?.vigencia || 30,
+    estado: initialData?.estado ?? true
   });
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        nombre: initialData.nombre || '',
-        apellido: initialData.apellido || '',
-        nombreUsuario: initialData.nombreUsuario || '',
-        email: initialData.email || '',
-        password: '',
-        rol: initialData.rol || 'usuario',
-        vigencia: initialData.vigencia || 30,
-      });
-    } else {
-      // Resetear el formulario cuando no hay datos iniciales
-      setFormData({
-        nombre: '',
-        apellido: '',
-        nombreUsuario: '',
-        email: '',
-        password: '',
-        rol: 'usuario',
-        vigencia: 30,
-      });
-    }
-  }, [initialData]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-      ...(name === 'rol' && value === 'administrador' ? { vigencia: 999999 } : {})
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
-      const submitData = {
-        ...formData,
-        vigencia: parseInt(formData.vigencia.toString())
-      };
-      onSubmit(submitData);
+      // Si es admin, no enviamos vigencia
+      const dataToSubmit = formData.rol === 'admin' 
+        ? { ...formData, vigencia: 365 } 
+        : formData;
+      
+      await onSubmit(dataToSubmit);
     } catch (error) {
-      console.error('Error en el formulario:', error);
+      toast({
+        title: "Error",
+        description: "Hubo un error al procesar la solicitud",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h3 className="text-lg font-semibold mb-4">
-        {initialData ? 'Editar Usuario' : 'Crear Usuario'}
-      </h3>
-      <div>
-        <Label htmlFor="nombre">Nombre</Label>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="nombre">Nombres</Label>
+          <Input
+            id="nombre"
+            value={formData.nombre}
+            onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="apellido">Apellidos</Label>
+          <Input
+            id="apellido"
+            value={formData.apellido}
+            onChange={(e) => setFormData(prev => ({ ...prev, apellido: e.target.value }))}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="usuario">Usuario</Label>
         <Input
-          id="nombre"
-          name="nombre"
-          value={formData.nombre}
-          onChange={handleChange}
+          id="usuario"
+          value={formData.usuario}
+          onChange={(e) => setFormData(prev => ({ ...prev, usuario: e.target.value }))}
           required
         />
       </div>
 
-      <div>
-        <Label htmlFor="apellido">Apellido</Label>
+      <div className="space-y-2">
+        <Label htmlFor="correo">Correo Electrónico</Label>
         <Input
-          id="apellido"
-          name="apellido"
-          value={formData.apellido}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="nombreUsuario">Nombre de Usuario</Label>
-        <Input
-          id="nombreUsuario"
-          name="nombreUsuario"
-          value={formData.nombreUsuario}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="email">Correo Electrónico</Label>
-        <Input
-          id="email"
-          name="email"
+          id="correo"
           type="email"
-          value={formData.email}
-          onChange={handleChange}
+          value={formData.correo}
+          onChange={(e) => setFormData(prev => ({ ...prev, correo: e.target.value }))}
           required
         />
       </div>
 
-      <div>
-        <Label htmlFor="password">Contraseña</Label>
+      <div className="space-y-2">
+        <Label htmlFor="password">Contraseña {!initialData && <span className="text-red-500">*</span>}</Label>
         <Input
           id="password"
-          name="password"
           type="password"
           value={formData.password}
-          onChange={handleChange}
-          required
+          onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+          required={!initialData}
         />
       </div>
 
-      <div>
+      <div className="space-y-2">
         <Label htmlFor="rol">Rol</Label>
-        <select
-          id="rol"
-          name="rol"
+        <Select
           value={formData.rol}
-          onChange={handleChange}
-          className="w-full border rounded-md p-2"
-          required
-        >
-          <option value="administrador">Administrador</option>
-          <option value="usuario">Usuario</option>
-        </select>
+          onValueChange={(value) => setFormData(prev => ({ ...prev, rol: value }))}>
+          <SelectTrigger>
+            <SelectValue placeholder="Seleccione un rol" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="admin">Administrador</SelectItem>
+            <SelectItem value="pollo">Usuario de Pollo</SelectItem>
+            <SelectItem value="chancho">Usuario de Chancho</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {formData.rol !== 'administrador' && (
-        <div>
-          <Label htmlFor="vigencia">Vigencia (días)</Label>
+      {formData.rol !== 'admin' && (
+        <div className="space-y-2">
+          <Label htmlFor="vigencia">Días de Vigencia</Label>
           <Input
             id="vigencia"
-            name="vigencia"
             type="number"
-            value={formData.vigencia}
-            onChange={handleChange}
-            required
             min="1"
+            value={formData.vigencia}
+            onChange={(e) => setFormData(prev => ({ ...prev, vigencia: parseInt(e.target.value) }))}
+            required
           />
         </div>
       )}
 
-      <Button type="submit" className="w-full">
-        {initialData ? 'Actualizar Usuario' : 'Crear Usuario'}
+      <div className="flex items-center space-x-2">
+        <Switch
+          checked={formData.estado}
+          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, estado: checked }))}>
+        </Switch>
+        <Label>Usuario Activo</Label>
+      </div>
+
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "Procesando..." : initialData ? "Actualizar Usuario" : "Crear Usuario"}
       </Button>
     </form>
   );

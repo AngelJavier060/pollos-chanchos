@@ -1,67 +1,55 @@
 'use client';
 
-import { FC } from 'react';
-import { 
-  LayoutDashboard,
-  Users,
-  Bird,
-  Warehouse,
-  Syringe,
-  LogOut,
-  FileText,
-  ClipboardList
-} from 'lucide-react';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/app/lib/utils";
+import { Home, Users, DogIcon, Package, Settings, FileText, LogOut } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
 
-interface NavbarProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
+const navigationItems = [
+  { label: "General", href: "/admin/dashboard", icon: Home },
+  { label: "Usuarios", href: "/admin/dashboard/usuarios", icon: Users },
+  { label: "Gestión de Razas", href: "/admin/dashboard/razas", icon: DogIcon },
+  { label: "Inventario", href: "/admin/dashboard/inventario", icon: Package },
+  { label: "Configuración", href: "/admin/dashboard/configuracion", icon: Settings },
+  { label: "Reportes", href: "/admin/dashboard/reportes", icon: FileText },
+];
 
-const Navbar: FC<NavbarProps> = ({ activeTab, onTabChange }) => {
-  const tabs = [
-    { id: 'general', label: 'General', icon: <LayoutDashboard className="w-4 h-4 mr-2" /> },
-    { id: 'usuarios', label: 'Usuarios', icon: <Users className="w-4 h-4 mr-2" /> },
-    { id: 'registro', label: 'Registro', icon: <ClipboardList className="w-4 h-4 mr-2" /> },
-    { id: 'inventario', label: 'Inventario', icon: <Warehouse className="w-4 h-4 mr-2" /> },
-    { id: 'configuracion', label: 'Configuración', icon: <Syringe className="w-4 h-4 mr-2" /> },
-    { id: 'reportes', label: 'Reportes', icon: <FileText className="w-4 h-4 mr-2" /> },
-  ];
+export default function Navbar() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    router.push('/');
+  };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm z-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            <span className="text-xl font-bold text-purple-600">Granja Elvita</span>
-          </div>
-
-          {/* Navegación */}
-          <div className="flex items-center space-x-4">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => onTabChange(tab.id)}
-                className={`flex items-center px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 ${
-                  activeTab === tab.id ? 'bg-gray-100' : ''
-                }`}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            ))}
-
-            <button 
-              className="flex items-center px-3 py-2 rounded-md text-red-600 hover:bg-red-50"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              <span>Salir</span>
-            </button>
-          </div>
-        </div>
+    <nav className="flex justify-between items-center border-b px-6 bg-white">
+      <div className="flex space-x-6">
+        {navigationItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex items-center space-x-2 py-4 text-sm font-medium transition-colors hover:text-primary",
+              pathname === item.href
+                ? "border-b-2 border-primary text-primary"
+                : "text-muted-foreground"
+            )}
+          >
+            <item.icon className="h-4 w-4" />
+            <span>{item.label}</span>
+          </Link>
+        ))}
       </div>
+      <Button
+        variant="ghost"
+        onClick={handleLogout}
+        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+      >
+        <LogOut className="h-4 w-4 mr-2" />
+        Salir
+      </Button>
     </nav>
   );
-};
-
-export default Navbar;
+}

@@ -12,3 +12,30 @@ uvicorn src.main:app --reload
 Desactivar el entorno virtual
 deactivate
 python -m src.database.test_connection
+
+
+python src/database/test_connection.py
+
+Arranque de backend 
+uvicorn src.main:app --reload --port 8000
+
+uvicorn src.app.main:app --reload --port 8000
+
+
+Usuario: admintest
+Contraseña:12345
+
+borra cacke
+Remove-Item -Recurse -Force .next
+
+
+Base de datos 
+Ver las base de datos creados
+\l
+conectar a la base de datos 
+\c granja_elvita 
+
+
+para limpiar el cachek 
+Remove-Item -Recurse -Force dist
+

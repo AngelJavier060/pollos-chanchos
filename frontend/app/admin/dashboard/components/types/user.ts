@@ -1,12 +1,15 @@
+export type UserRole = 'admin' | 'pollo' | 'chancho' | 'usuario';
+
 export interface User {
-  id: number;
+  id?: number;
   nombre: string;
   apellido: string;
-  nombreUsuario: string;
-  email: string;
-  rol: 'administrador' | 'usuario';
-  vigencia: number;
-  fechaCreacion: string;
-  estado: 'activo' | 'inactivo';
+  usuario: string;
+  correo: string;
   password?: string;
+  rol: UserRole;
+  vigencia: number;
+  estado: boolean;
+  fecha_registro?: Date | string;
+  ultimo_acceso?: Date | string;
 } 

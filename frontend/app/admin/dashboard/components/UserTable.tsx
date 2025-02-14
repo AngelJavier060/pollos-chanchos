@@ -1,125 +1,124 @@
-import { Button } from "./ui/button";
-import { FC } from "react";
-import { User } from "./types/user";
+'use client';
+
+import { FC } from 'react';
+import { User } from '../types/user';
+import { Edit2, Trash2 } from 'lucide-react';
+import { Button } from "@/app/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/app/components/ui/table";
+import { calcularDiasRestantes, obtenerEstadoCuenta, formatearDiasRestantes } from '@/app/lib/dateUtils';
+import { format, addDays } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface UserTableProps {
   users: User[];
-  onEdit: (id: number) => void;
+  onEdit: (user: User) => void;
   onDelete: (id: number) => void;
 }
 
 const UserTable: FC<UserTableProps> = ({ users, onEdit, onDelete }) => {
-  const calcularDiasRestantes = (user: User) => {
-    if (user.rol === 'administrador') {
-      return Infinity;
-    }
+  console.log('Usuarios recibidos en la tabla:', users); // Debug
 
-    try {
-      const hoy = new Date();
-      const fechaCreacion = new Date(user.fechaCreacion);
-      const vigenciaTotal = user.vigencia;
-      
-      const diasTranscurridos = Math.floor(
-        (hoy.getTime() - fechaCreacion.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      
-      return Math.max(0, vigenciaTotal - diasTranscurridos);
-    } catch (error) {
-      console.error('Error calculando días restantes:', error);
-      return 0;
-    }
-  };
+  if (!users?.length) {
+    return <div className="text-center py-4">No hay usuarios registrados</div>;
+  }
 
-  const formatearVigencia = (user: User) => {
-    if (user.rol === 'administrador') {
-      return 'Sin expiración';
-    }
+  const getEstadoVencimiento = (fechaRegistro: string, vigencia: number) => {
+    if (!fechaRegistro || !vigencia) return { texto: 'No disponible', clase: 'text-gray-500' };
+    
+    const fechaVencimiento = addDays(new Date(fechaRegistro), vigencia);
+    const hoy = new Date();
+    const diasRestantes = Math.ceil((fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
 
-    const diasRestantes = calcularDiasRestantes(user);
-    if (diasRestantes === 0) return 'Expirado';
-    if (diasRestantes === Infinity) return 'Sin expiración';
-    return `${diasRestantes} días`;
-  };
-
-  const getEstadoStyle = (user: User) => {
-    if (user.rol === 'administrador') {
-      return 'bg-blue-100 text-blue-800';
+    if (diasRestantes < 0) {
+      return {
+        texto: 'Expirado',
+        clase: 'bg-red-100 text-red-800'
+      };
     }
-
-    const diasRestantes = calcularDiasRestantes(user);
-    if (diasRestantes <= 0) {
-      return 'bg-red-100 text-red-800';
-    } else if (diasRestantes <= 5) {
-      return 'bg-yellow-100 text-yellow-800';
+    if (diasRestantes <= 5) {
+      return {
+        texto: `${diasRestantes} días`,
+        clase: 'bg-red-100 text-red-800'
+      };
     }
-    return 'bg-green-100 text-green-800';
+    if (diasRestantes <= 15) {
+      return {
+        texto: `${diasRestantes} días`,
+        clase: 'bg-yellow-100 text-yellow-800'
+      };
+    }
+    return {
+      texto: format(fechaVencimiento, "d 'de' MMMM, yyyy", { locale: es }),
+      clase: 'bg-green-100 text-green-600'
+    };
   };
 
   return (
-    <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200">
-      <table className="min-w-full text-sm text-left text-gray-500 divide-y divide-gray-200">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-100">
-          <tr>
-            <th className="px-6 py-3">Nombre</th>
-            <th className="px-6 py-3">Apellido</th>
-            <th className="px-6 py-3">Usuario</th>
-            <th className="px-6 py-3">Correo</th>
-            <th className="px-6 py-3">Rol</th>
-            <th className="px-6 py-3">Vigencia</th>
-            <th className="px-6 py-3">Estado</th>
-            <th className="px-6 py-3">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => {
-            const diasRestantes = calcularDiasRestantes(user);
-            const estadoStyle = getEstadoStyle(user);
-            
-            return (
-              <tr key={user.id} className="border-b hover:bg-gray-50">
-                <td className="px-6 py-4">{user.nombre}</td>
-                <td className="px-6 py-4">{user.apellido}</td>
-                <td className="px-6 py-4">{user.nombreUsuario}</td>
-                <td className="px-6 py-4">{user.email}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-sm ${user.rol === 'administrador' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {user.rol}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-col">
-                    <span className="font-medium">
-                      {formatearVigencia(user)}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      Creado: {new Date(user.fechaCreacion).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-sm ${estadoStyle}`}>
-                    {user.rol === 'administrador' 
-                      ? 'Administrador'
-                      : diasRestantes > 0 
-                        ? 'Activo' 
-                        : 'Inactivo'
-                    }
-                  </span>
-                </td>
-                <td className="px-6 py-4 flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => onEdit(user.id)}>Editar</Button>
-                  <Button variant="outline" size="sm" onClick={() => onDelete(user.id)}>Eliminar</Button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Nombres</TableHead>
+          <TableHead>Apellidos</TableHead>
+          <TableHead>Usuario</TableHead>
+          <TableHead>Correo</TableHead>
+          <TableHead>Rol</TableHead>
+          <TableHead>Vigencia</TableHead>
+          <TableHead>Estado</TableHead>
+          <TableHead>Acciones</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {users.map((user) => (
+          <TableRow key={user.id}>
+            <TableCell>{user.nombre}</TableCell>
+            <TableCell>{user.apellido}</TableCell>
+            <TableCell>{user.usuario}</TableCell>
+            <TableCell>{user.correo}</TableCell>
+            <TableCell>
+              {user.rol === 'admin' ? 'Administrador' : 
+               user.rol === 'pollo' ? 'Usuario de Pollo' : 
+               user.rol === 'chancho' ? 'Usuario de Chancho' : 'Usuario'}
+            </TableCell>
+            <TableCell>
+              {user.rol === 'admin' ? 'N/A' : `${user.vigencia} días`}
+            </TableCell>
+            <TableCell>
+              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                user.estado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {user.estado ? 'Activo' : 'Inactivo'}
+              </span>
+            </TableCell>
+            <TableCell>
+              <div className="flex space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(user)}
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete(user.id)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 };
 
