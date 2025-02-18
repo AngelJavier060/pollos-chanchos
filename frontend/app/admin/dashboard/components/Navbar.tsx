@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation';
 import { cn } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
 import { 
-  Home, Users, Package, Settings, FileText, DogIcon, LogOut
+  Home, Users, Package, Settings, FileText, DogIcon, LogOut,
+  Utensils
 } from 'lucide-react';
 import { authService } from '@/app/lib/auth';
 
@@ -13,6 +14,7 @@ const navigationItems = [
   { label: "General", href: "/admin/dashboard", icon: Home },
   { label: "Usuarios", href: "/admin/dashboard/usuarios", icon: Users },
   { label: "Registro de Lotes", href: "/admin/dashboard/razas", icon: DogIcon },
+  { label: "Plan Nutricional", href: "/admin/dashboard/plan-nutricional", icon: Utensils },
   { label: "Inventario", href: "/admin/dashboard/inventario", icon: Package },
   { label: "Configuración", href: "/admin/dashboard/configuracion", icon: Settings },
   { label: "Reportes", href: "/admin/dashboard/reportes", icon: FileText },

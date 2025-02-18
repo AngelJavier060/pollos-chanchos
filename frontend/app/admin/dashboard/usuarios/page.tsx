@@ -30,7 +30,7 @@ interface Usuario {
   correo: string;
   rol: string;
   estado: number;
-  vigencia: number | null;
+  vigencia: number;
   fecha_registro: string;
 }
 
@@ -45,7 +45,7 @@ const usuariosEjemplo: Usuario[] = [
     correo: "admin@ejemplo.com",
     rol: "admin",
     estado: 1,
-    vigencia: null,
+    vigencia: 0,
     fecha_registro: new Date().toISOString().split('T')[0]
   },
   {
@@ -86,9 +86,23 @@ const usuariosEjemplo: Usuario[] = [
   }
 ];
 
-// Primero agregamos una función auxiliar para calcular los días restantes
-const calcularDiasRestantes = (fechaRegistro: string, vigenciaDias: number | null) => {
-  if (!vigenciaDias || vigenciaDias === null) return null;
+// Primero, actualicemos la interfaz Usuario para manejar correctamente la vigencia
+interface Usuario {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  cedula: string;
+  usuario: string;
+  correo: string;
+  rol: string;
+  estado: number;
+  vigencia: number;  // Cambiamos de number | null a number
+  fecha_registro: string;
+}
+
+// Función auxiliar para calcular días restantes con manejo de nulos
+const calcularDiasRestantes = (fechaRegistro: string, vigenciaDias: number): number => {
+  if (vigenciaDias === 0) return 0;
   
   const fechaInicio = new Date(fechaRegistro);
   const fechaVencimiento = new Date(fechaInicio);
@@ -131,7 +145,7 @@ export default function UsuariosPage() {
     correo: '',
     password: '',
     rol: 'pollos',
-    vigencia: 30, // Valor por defecto para roles no admin
+    vigencia: 30, // Valor por defecto
     estado: 1
   });
 
@@ -179,8 +193,7 @@ export default function UsuariosPage() {
         correo: nuevoUsuario.correo,
         rol: nuevoUsuario.rol,
         estado: nuevoUsuario.estado,
-        vigencia: nuevoUsuario.rol === 'admin' ? null : 
-                 typeof nuevoUsuario.vigencia === 'number' ? nuevoUsuario.vigencia : 30,
+        vigencia: nuevoUsuario.rol === 'admin' ? 0 : nuevoUsuario.vigencia,
         fecha_registro: new Date().toISOString().split('T')[0]
       };
       setUsuarios([...usuarios, usuario]);
@@ -200,7 +213,7 @@ export default function UsuariosPage() {
       correo: '',
       password: '',
       rol: 'pollos',
-      vigencia: 30, // Valor por defecto para roles no admin
+      vigencia: 30, // Valor por defecto
       estado: 1
     });
   };
@@ -223,7 +236,7 @@ export default function UsuariosPage() {
       correo: usuario.correo,
       password: '',
       rol: usuario.rol,
-      vigencia: usuario.vigencia || 30,
+      vigencia: usuario.vigencia,
       estado: usuario.estado
     });
     setIsDialogOpen(true);
@@ -233,7 +246,7 @@ export default function UsuariosPage() {
     setNuevoUsuario({
       ...nuevoUsuario,
       rol: value,
-      vigencia: value === 'admin' ? null : 30
+      vigencia: value === 'admin' ? 0 : 30 // Usamos 0 en lugar de null para admin
     });
   };
 
@@ -527,7 +540,8 @@ export default function UsuariosPage() {
                     'hover:bg-gray-50 border-gray-200'
                   }
                   ${usuario.rol !== 'admin' && 
-                    calcularDiasRestantes(usuario.fecha_registro, usuario.vigencia) <= 5 
+                    calcularDiasRestantes(usuario.fecha_registro, usuario.vigencia) <= 5 && 
+                    calcularDiasRestantes(usuario.fecha_registro, usuario.vigencia) > 0
                       ? theme === 'dark' ? 'bg-yellow-900/20' : 'bg-yellow-50' 
                       : ''
                   }
