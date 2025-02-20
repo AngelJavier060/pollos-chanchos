@@ -107,7 +107,7 @@ export default function InventarioList() {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Detalle</TableHead>
+              <TableHead>Nombre de la Etapa</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Para</TableHead>
               <TableHead>Cantidad</TableHead>

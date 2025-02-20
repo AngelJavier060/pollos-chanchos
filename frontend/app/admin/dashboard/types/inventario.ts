@@ -1,5 +1,6 @@
 export type TipoProducto = 'alimento' | 'medicina';
 export type TipoAnimal = 'pollos' | 'chanchos';
+export type FormaAlimento = 'Polvo' | 'Granulado' | 'Peletizado';
 
 export interface Producto {
   id: number;
@@ -7,6 +8,7 @@ export interface Producto {
   detalle: string;
   tipo: TipoProducto;
   tipo_animal: TipoAnimal;
+  forma_alimento?: FormaAlimento;
   cantidad: number;
   unidad_medida: string;
   precio_unitario: number;
@@ -26,4 +28,4 @@ export interface StockAlert {
   nivel_minimo: number;
   nivel_critico: number;
   porcentaje_stock: number;
-} 
+}

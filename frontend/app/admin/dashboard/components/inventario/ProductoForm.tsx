@@ -21,6 +21,7 @@ const initialFormState = {
   detalle: '',
   tipo: 'alimento',
   tipo_animal: 'pollos',
+  forma_alimento: 'Polvo',
   cantidad: '',
   unidad_medida: '',
   precio_unitario: '',
@@ -47,6 +48,7 @@ export default function ProductoForm({
           detalle: initialData.detalle || '',
           tipo: initialData.tipo || 'alimento',
           tipo_animal: initialData.tipo_animal || 'pollos',
+          forma_alimento: initialData.forma_alimento || 'Polvo',
           cantidad: initialData.cantidad?.toString() || '',
           unidad_medida: initialData.unidad_medida || '',
           precio_unitario: initialData.precio_unitario?.toString() || '',
@@ -108,34 +110,33 @@ export default function ProductoForm({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="nombre">Nombre</Label>
+              <Label htmlFor="nombre">Nombre del Producto</Label>
               <Input
                 id="nombre"
                 value={formData.nombre}
-                onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
-                required
-                placeholder="Nombre del producto"
+                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                placeholder="Ingrese el nombre"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="detalle">Detalle</Label>
+              <Label htmlFor="detalle">Nombre de la etapa</Label>
               <Input
                 id="detalle"
                 value={formData.detalle}
-                onChange={(e) => setFormData(prev => ({ ...prev, detalle: e.target.value }))}
-                placeholder="Descripción breve del producto"
+                onChange={(e) => setFormData({ ...formData, detalle: e.target.value })}
+                placeholder="Ej: Iniciador, Crecimiento, etc."
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tipo">Tipo</Label>
+              <Label htmlFor="tipo">Tipo de Producto</Label>
               <Select
                 value={formData.tipo}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value }))}
+                onValueChange={(value) => setFormData({ ...formData, tipo: value })}
               >
-                <SelectTrigger id="tipo">
-                  <SelectValue placeholder="Seleccione tipo" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione el tipo" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="alimento">Alimento</SelectItem>
@@ -145,20 +146,39 @@ export default function ProductoForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tipo_animal">Para</Label>
+              <Label htmlFor="tipo_animal">Tipo de Animal</Label>
               <Select
                 value={formData.tipo_animal}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, tipo_animal: value }))}
+                onValueChange={(value) => setFormData({ ...formData, tipo_animal: value })}
               >
-                <SelectTrigger id="tipo_animal">
-                  <SelectValue placeholder="Seleccionar animal" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione el animal" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pollos">Pollos</SelectItem>
-                  <SelectItem value="chanchos">Chanchos</SelectItem>
+                  <SelectItem value="cerdos">Cerdos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {formData.tipo === 'alimento' && (
+              <div className="space-y-2">
+                <Label htmlFor="forma_alimento">Forma de alimento</Label>
+                <Select
+                  value={formData.forma_alimento}
+                  onValueChange={(value) => setFormData({ ...formData, forma_alimento: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione la forma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Polvo">Polvo</SelectItem>
+                    <SelectItem value="Granulado">Granulado</SelectItem>
+                    <SelectItem value="Peletizado">Peletizado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="cantidad">Cantidad</Label>
@@ -168,8 +188,7 @@ export default function ProductoForm({
                 min="0"
                 step="0.01"
                 value={formData.cantidad}
-                onChange={(e) => setFormData(prev => ({ ...prev, cantidad: e.target.value }))}
-                required
+                onChange={(e) => setFormData({ ...formData, cantidad: e.target.value })}
                 placeholder="0.00"
               />
             </div>
@@ -179,8 +198,7 @@ export default function ProductoForm({
               <Input
                 id="unidad_medida"
                 value={formData.unidad_medida}
-                onChange={(e) => setFormData(prev => ({ ...prev, unidad_medida: e.target.value }))}
-                required
+                onChange={(e) => setFormData({ ...formData, unidad_medida: e.target.value })}
                 placeholder="kg, g, l, ml, etc."
               />
             </div>
@@ -193,8 +211,7 @@ export default function ProductoForm({
                 min="0"
                 step="0.01"
                 value={formData.precio_unitario}
-                onChange={(e) => setFormData(prev => ({ ...prev, precio_unitario: e.target.value }))}
-                required
+                onChange={(e) => setFormData({ ...formData, precio_unitario: e.target.value })}
                 placeholder="0.00"
               />
             </div>
@@ -204,8 +221,7 @@ export default function ProductoForm({
               <Input
                 id="proveedor"
                 value={formData.proveedor}
-                onChange={(e) => setFormData(prev => ({ ...prev, proveedor: e.target.value }))}
-                required
+                onChange={(e) => setFormData({ ...formData, proveedor: e.target.value })}
                 placeholder="Nombre del proveedor"
               />
             </div>
@@ -215,8 +231,7 @@ export default function ProductoForm({
               <Input
                 id="numero_factura"
                 value={formData.numero_factura}
-                onChange={(e) => setFormData(prev => ({ ...prev, numero_factura: e.target.value }))}
-                required
+                onChange={(e) => setFormData({ ...formData, numero_factura: e.target.value })}
                 placeholder="Ej: FAC-001"
               />
             </div>
@@ -227,8 +242,7 @@ export default function ProductoForm({
                 id="fecha_compra"
                 type="date"
                 value={formData.fecha_compra}
-                onChange={(e) => setFormData(prev => ({ ...prev, fecha_compra: e.target.value }))}
-                required
+                onChange={(e) => setFormData({ ...formData, fecha_compra: e.target.value })}
               />
             </div>
 
@@ -239,8 +253,7 @@ export default function ProductoForm({
                 type="number"
                 min="0"
                 value={formData.nivel_minimo}
-                onChange={(e) => setFormData(prev => ({ ...prev, nivel_minimo: e.target.value }))}
-                required
+                onChange={(e) => setFormData({ ...formData, nivel_minimo: e.target.value })}
                 placeholder="0"
               />
             </div>
@@ -252,8 +265,7 @@ export default function ProductoForm({
                 type="number"
                 min="0"
                 value={formData.nivel_critico}
-                onChange={(e) => setFormData(prev => ({ ...prev, nivel_critico: e.target.value }))}
-                required
+                onChange={(e) => setFormData({ ...formData, nivel_critico: e.target.value })}
                 placeholder="0"
               />
             </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from "next-themes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -38,11 +38,22 @@ interface PlanAlimentacion {
   diasInicio: number;
   diasFin: number;
   consumoDiario: number;
+  consumoAgua: number;
+  unidadAgua: 'ml' | 'L';
   energia: number;
   pesoObjetivo: number;
   tipoAlimento: 'Polvo' | 'Granulado' | 'Peletizado';
   descripcionAlimento: string;
-  tipoAnimal: 'pollo' | 'cerdo';
+  tipoAnimal: 'pollos' | 'cerdos';
+}
+
+interface Producto {
+  id: number;
+  nombre: string;
+  detalle: string;
+  tipo: 'alimento';
+  tipo_animal: 'pollos' | 'cerdos';
+  forma_alimento: 'Polvo' | 'Granulado' | 'Peletizado';
 }
 
 const alimentacionInicial: PlanAlimentacion[] = [
@@ -52,31 +63,74 @@ const alimentacionInicial: PlanAlimentacion[] = [
     diasInicio: 1,
     diasFin: 14,
     consumoDiario: 15,
+    consumoAgua: 30,
+    unidadAgua: 'ml',
     energia: 2950,
     pesoObjetivo: 0.19,
     tipoAlimento: "Polvo",
     descripcionAlimento: "Alimento iniciador con alto contenido proteico",
-    tipoAnimal: "pollo"
+    tipoAnimal: "pollos"
   }
 ];
 
 export default function PlanNutricionalPage() {
   const { theme } = useTheme();
-  const [alimentacion, setAlimentacion] = useState<PlanAlimentacion[]>(alimentacionInicial);
-  const [animalSeleccionado, setAnimalSeleccionado] = useState<'pollo' | 'cerdo'>('pollo');
+  const [alimentacion, setAlimentacion] = useState<PlanAlimentacion[]>([]);
+  const [tipoAnimal, setTipoAnimal] = useState<'pollos' | 'cerdos'>('pollos');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [etapaParaEditar, setEtapaParaEditar] = useState<PlanAlimentacion | null>(null);
+  const [productosInventario, setProductosInventario] = useState<Producto[]>([]);
   const [nuevaEtapa, setNuevaEtapa] = useState<Partial<PlanAlimentacion>>({
     nombreEtapa: '',
     diasInicio: 1,
     diasFin: 1,
     consumoDiario: 0,
+    consumoAgua: 0,
+    unidadAgua: 'ml',
     energia: 0,
     pesoObjetivo: 0,
-    descripcionAlimento: '',
     tipoAlimento: 'Polvo',
-    tipoAnimal: animalSeleccionado
+    descripcionAlimento: '',
+    tipoAnimal: 'pollos'
   });
+
+  // Cargar planes nutricionales al inicio
+  useEffect(() => {
+    const planesGuardados = localStorage.getItem('planesNutricionales');
+    if (planesGuardados) {
+      setAlimentacion(JSON.parse(planesGuardados));
+    } else {
+      setAlimentacion(alimentacionInicial);
+      localStorage.setItem('planesNutricionales', JSON.stringify(alimentacionInicial));
+    }
+  }, []);
+
+  // Guardar cambios en localStorage cada vez que se actualice la alimentación
+  useEffect(() => {
+    localStorage.setItem('planesNutricionales', JSON.stringify(alimentacion));
+  }, [alimentacion]);
+
+  // Cargar productos del inventario
+  useEffect(() => {
+    const productosGuardados = localStorage.getItem('productos');
+    if (productosGuardados) {
+      const productos = JSON.parse(productosGuardados);
+      const alimentosInventario = productos.filter((p: Producto) => 
+        p.tipo === 'alimento' && p.tipo_animal === tipoAnimal
+      );
+      setProductosInventario(alimentosInventario);
+    }
+  }, [tipoAnimal]);
+
+  // Obtener nombres de etapas del inventario
+  const etapasDisponibles = useMemo(() => {
+    return productosInventario.map(p => ({
+      value: p.detalle,
+      label: p.detalle,
+      formaAlimento: p.forma_alimento || 'Polvo',
+      id: p.id
+    }));
+  }, [productosInventario]);
 
   const handleEliminarEtapa = (id: number) => {
     if (confirm('¿Está seguro que desea eliminar esta etapa?')) {
@@ -98,15 +152,17 @@ export default function PlanNutricionalPage() {
 
     const etapaActualizada: PlanAlimentacion = {
       id: etapaParaEditar?.id || alimentacion.length + 1,
-      nombreEtapa: nuevaEtapa.nombreEtapa,
-      diasInicio: Number(nuevaEtapa.diasInicio) || 1,
-      diasFin: Number(nuevaEtapa.diasFin) || 1,
-      consumoDiario: Number(nuevaEtapa.consumoDiario) || 0,
-      energia: Number(nuevaEtapa.energia) || 0,
-      pesoObjetivo: Number(nuevaEtapa.pesoObjetivo) || 0,
-      tipoAlimento: nuevaEtapa.tipoAlimento || 'Polvo',
-      descripcionAlimento: nuevaEtapa.descripcionAlimento || '',
-      tipoAnimal: nuevaEtapa.tipoAnimal || animalSeleccionado
+      nombreEtapa: nuevaEtapa.nombreEtapa!,
+      diasInicio: nuevaEtapa.diasInicio!,
+      diasFin: nuevaEtapa.diasFin!,
+      consumoDiario: nuevaEtapa.consumoDiario!,
+      consumoAgua: nuevaEtapa.consumoAgua!,
+      unidadAgua: nuevaEtapa.unidadAgua as 'ml' | 'L',
+      energia: nuevaEtapa.energia!,
+      pesoObjetivo: nuevaEtapa.pesoObjetivo!,
+      tipoAlimento: nuevaEtapa.tipoAlimento as 'Polvo' | 'Granulado' | 'Peletizado',
+      descripcionAlimento: nuevaEtapa.descripcionAlimento!,
+      tipoAnimal: nuevaEtapa.tipoAnimal as 'pollos' | 'cerdos'
     };
 
     if (etapaParaEditar) {
@@ -124,16 +180,18 @@ export default function PlanNutricionalPage() {
       diasInicio: 1,
       diasFin: 1,
       consumoDiario: 0,
+      consumoAgua: 0,
+      unidadAgua: 'ml',
       energia: 0,
       pesoObjetivo: 0,
       descripcionAlimento: '',
       tipoAlimento: 'Polvo',
-      tipoAnimal: animalSeleccionado
+      tipoAnimal: 'pollos'
     });
   };
 
   const handleTabChange = (value: string) => {
-    setAnimalSeleccionado(value as 'pollo' | 'cerdo');
+    setTipoAnimal(value as 'pollos' | 'cerdos');
   };
 
   return (
@@ -157,11 +215,11 @@ export default function PlanNutricionalPage() {
       
       <h2 className="text-2xl font-bold mb-4">Plan de Alimentación</h2>
       
-      <Tabs defaultValue="pollo" className="space-y-4" onValueChange={handleTabChange}>
+      <Tabs defaultValue="pollos" className="space-y-4" onValueChange={handleTabChange}>
         <div className="flex justify-between items-center">
           <TabsList>
-            <TabsTrigger value="pollo">Pollos</TabsTrigger>
-            <TabsTrigger value="cerdo">Cerdos</TabsTrigger>
+            <TabsTrigger value="pollos">Pollos</TabsTrigger>
+            <TabsTrigger value="cerdos">Cerdos</TabsTrigger>
           </TabsList>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -173,7 +231,7 @@ export default function PlanNutricionalPage() {
             <DialogContent className="sm:max-w-[725px]">
               <DialogHeader>
                 <DialogTitle>
-                  {etapaParaEditar ? 'Editar Etapa de Alimentación' : 'Nueva Etapa de Alimentación'}
+                  {etapaParaEditar ? 'Editar Etapa' : 'Nueva Etapa de Alimentación'}
                 </DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -182,51 +240,54 @@ export default function PlanNutricionalPage() {
                     Tipo de Animal
                   </Label>
                   <Select
-                    value={nuevaEtapa.tipoAnimal}
-                    onValueChange={(value: 'pollo' | 'cerdo') => 
-                      setNuevaEtapa({...nuevaEtapa, tipoAnimal: value})
-                    }
+                    value={tipoAnimal}
+                    onValueChange={(valor: 'pollos' | 'cerdos') => {
+                      setTipoAnimal(valor);
+                      setNuevaEtapa(prev => ({
+                        ...prev,
+                        tipoAnimal: valor,
+                        nombreEtapa: ''
+                      }));
+                    }}
                   >
                     <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Seleccione tipo de animal" />
+                      <SelectValue placeholder="Seleccione el tipo de animal" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pollo">Pollos</SelectItem>
-                      <SelectItem value="cerdo">Cerdos</SelectItem>
+                      <SelectItem value="pollos">Pollos</SelectItem>
+                      <SelectItem value="cerdos">Cerdos</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="nombreEtapa" className="text-right">
-                    Nombre Etapa
-                  </Label>
-                  <Input
-                    id="nombreEtapa"
-                    className="col-span-3"
-                    value={nuevaEtapa.nombreEtapa}
-                    onChange={(e) => setNuevaEtapa({...nuevaEtapa, nombreEtapa: e.target.value})}
-                    placeholder="Ej: Iniciador, Crecimiento, etc."
-                  />
-                </div>
-
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="tipoAlimento" className="text-right">
-                    Tipo de Alimento
+                    Nombre de la Etapa
                   </Label>
                   <Select
-                    value={nuevaEtapa.tipoAlimento}
-                    onValueChange={(value: 'Polvo' | 'Granulado' | 'Peletizado') => 
-                      setNuevaEtapa({...nuevaEtapa, tipoAlimento: value})
-                    }
+                    value={nuevaEtapa.nombreEtapa}
+                    onValueChange={(valor) => {
+                      const etapaSeleccionada = etapasDisponibles.find(e => e.value === valor);
+                      setNuevaEtapa({
+                        ...nuevaEtapa,
+                        nombreEtapa: valor,
+                        tipoAlimento: etapaSeleccionada?.formaAlimento || 'Polvo'
+                      });
+                    }}
                   >
                     <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Seleccione tipo de alimento" />
+                      <SelectValue placeholder="Seleccione la etapa" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Polvo">Polvo</SelectItem>
-                      <SelectItem value="Granulado">Granulado</SelectItem>
-                      <SelectItem value="Peletizado">Peletizado</SelectItem>
+                      {etapasDisponibles
+                        .filter((etapa, index, self) => 
+                          index === self.findIndex((t) => t.value === etapa.value)
+                        )
+                        .map((etapa) => (
+                          <SelectItem key={etapa.id} value={etapa.value}>
+                            {etapa.label}
+                          </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -275,6 +336,50 @@ export default function PlanNutricionalPage() {
                 </div>
 
                 <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="consumoAgua" className="text-right">
+                    Consumo de Agua
+                  </Label>
+                  <div className="col-span-3 flex gap-2">
+                    <Input
+                      id="consumoAgua"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      className="flex-1"
+                      value={nuevaEtapa.consumoAgua}
+                      onChange={(e) => setNuevaEtapa({...nuevaEtapa, consumoAgua: Number(e.target.value)})}
+                    />
+                    <Select
+                      value={nuevaEtapa.unidadAgua}
+                      onValueChange={(valor: 'ml' | 'L') => setNuevaEtapa({...nuevaEtapa, unidadAgua: valor})}
+                    >
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue placeholder="Unidad" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ml">ml</SelectItem>
+                        <SelectItem value="L">L</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="energia" className="text-right">
+                    Energía (kcal)
+                  </Label>
+                  <Input
+                    id="energia"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    className="col-span-3"
+                    value={nuevaEtapa.energia}
+                    onChange={(e) => setNuevaEtapa({...nuevaEtapa, energia: Number(e.target.value)})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="pesoObjetivo" className="text-right">
                     Peso Objetivo (kg)
                   </Label>
@@ -305,7 +410,7 @@ export default function PlanNutricionalPage() {
           </Dialog>
         </div>
 
-        <TabsContent value="pollo">
+        <TabsContent value="pollos">
           <Card>
             <CardHeader>
               <CardTitle>Plan de Alimentación para Pollos</CardTitle>
@@ -314,24 +419,30 @@ export default function PlanNutricionalPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Etapa</TableHead>
-                    <TableHead>Días</TableHead>
-                    <TableHead>Tipo Alimento</TableHead>
+                    <TableHead>Nombre de la Etapa</TableHead>
+                    <TableHead>Días Inicio</TableHead>
+                    <TableHead>Días Fin</TableHead>
                     <TableHead>Consumo Diario (g)</TableHead>
+                    <TableHead>Consumo Agua</TableHead>
+                    <TableHead>Energía (kcal)</TableHead>
                     <TableHead>Peso Objetivo (kg)</TableHead>
+                    <TableHead>Forma de alimento</TableHead>
                     <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {alimentacion
-                    .filter(etapa => etapa.tipoAnimal === 'pollo')
+                    .filter(etapa => etapa.tipoAnimal === 'pollos')
                     .map((etapa) => (
                       <TableRow key={etapa.id}>
                         <TableCell>{etapa.nombreEtapa}</TableCell>
-                        <TableCell>{etapa.diasInicio}-{etapa.diasFin}</TableCell>
-                        <TableCell>{etapa.tipoAlimento}</TableCell>
+                        <TableCell>{etapa.diasInicio}</TableCell>
+                        <TableCell>{etapa.diasFin}</TableCell>
                         <TableCell>{etapa.consumoDiario}</TableCell>
+                        <TableCell>{etapa.consumoAgua} {etapa.unidadAgua}/día</TableCell>
+                        <TableCell>{etapa.energia}</TableCell>
                         <TableCell>{etapa.pesoObjetivo}</TableCell>
+                        <TableCell>{etapa.tipoAlimento}</TableCell>
                         <TableCell className="space-x-2">
                           <Button 
                             variant="ghost" 
@@ -357,7 +468,7 @@ export default function PlanNutricionalPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="cerdo">
+        <TabsContent value="cerdos">
           <Card>
             <CardHeader>
               <CardTitle>Plan Nutricional para Cerdos</CardTitle>
@@ -366,24 +477,30 @@ export default function PlanNutricionalPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Etapa</TableHead>
-                    <TableHead>Días</TableHead>
+                    <TableHead>Nombre de la Etapa</TableHead>
+                    <TableHead>Días Inicio</TableHead>
+                    <TableHead>Días Fin</TableHead>
                     <TableHead>Consumo Diario (g)</TableHead>
-                    <TableHead>Energía (Kcal)</TableHead>
+                    <TableHead>Consumo Agua</TableHead>
+                    <TableHead>Energía (kcal)</TableHead>
                     <TableHead>Peso Objetivo (kg)</TableHead>
+                    <TableHead>Forma de alimento</TableHead>
                     <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {alimentacion
-                    .filter(etapa => etapa.tipoAnimal === 'cerdo')
+                    .filter(etapa => etapa.tipoAnimal === 'cerdos')
                     .map((etapa) => (
                       <TableRow key={etapa.id}>
                         <TableCell>{etapa.nombreEtapa}</TableCell>
-                        <TableCell>{etapa.diasInicio}-{etapa.diasFin}</TableCell>
+                        <TableCell>{etapa.diasInicio}</TableCell>
+                        <TableCell>{etapa.diasFin}</TableCell>
                         <TableCell>{etapa.consumoDiario}</TableCell>
+                        <TableCell>{etapa.consumoAgua} {etapa.unidadAgua}/día</TableCell>
                         <TableCell>{etapa.energia}</TableCell>
                         <TableCell>{etapa.pesoObjetivo}</TableCell>
+                        <TableCell>{etapa.tipoAlimento}</TableCell>
                         <TableCell className="space-x-2">
                           <Button variant="ghost" size="sm">
                             <Edit2 className="h-4 w-4" />
