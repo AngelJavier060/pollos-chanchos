@@ -14,8 +14,8 @@ const navigationItems = [
   { label: "General", href: "/admin/dashboard", icon: Home },
   { label: "Usuarios", href: "/admin/dashboard/usuarios", icon: Users },
   { label: "Registro de Lotes", href: "/admin/dashboard/razas", icon: DogIcon },
-  { label: "Plan Nutricional", href: "/admin/dashboard/plan-nutricional", icon: Utensils },
   { label: "Inventario", href: "/admin/dashboard/inventario", icon: Package },
+  { label: "Plan Nutricional", href: "/admin/dashboard/plan-nutricional", icon: Utensils },
   { label: "Configuración", href: "/admin/dashboard/configuracion", icon: Settings },
   { label: "Reportes", href: "/admin/dashboard/reportes", icon: FileText },
 ];
