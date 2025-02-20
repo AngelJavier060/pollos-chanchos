@@ -21,13 +21,27 @@ export default function LoginPollo() {
     try {
       console.log('Intentando login con:', { ...formData, password: '[PROTECTED]' });
 
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      // Simulación temporal para desarrollo del frontend
+      // TODO: Remover esta simulación cuando el backend esté listo
+      const mockResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          user: { rol: 'pollo' },
+          token: 'mock-token-for-development'
+        })
+      };
+
+      // Comentamos temporalmente la llamada real al backend
+      /* const response = await fetch('http://localhost:3001/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData)
-      });
+      }); */
+
+      // Usamos la respuesta simulada
+      const response = mockResponse;
 
       if (!response.ok) {
         const data = await response.json();
@@ -44,12 +58,17 @@ export default function LoginPollo() {
       
       toast({
         title: "Éxito",
-        description: "Inicio de sesión exitoso",
+        description: "Inicio de sesión exitoso (Modo desarrollo)",
       });
 
       router.push('/dashboard/pollo');
     } catch (error) {
-      console.error('Error completo:', error);
+      console.error('Error detallado:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : 'Error desconocido',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Error al iniciar sesión",

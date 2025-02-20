@@ -14,7 +14,7 @@ const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    router.push('/auth/pollo');
+    router.push('/auth/chancho');
   };
 
   return (
@@ -26,7 +26,7 @@ const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
               onClick={() => onTabChange('dashboard')}
               className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
                 activeTab === 'dashboard' 
-                  ? 'border-b-2 border-blue-500 text-gray-900' 
+                  ? 'border-b-2 border-red-500 text-gray-900' 
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -36,7 +36,7 @@ const Navbar = ({ activeTab, onTabChange }: NavbarProps) => {
               onClick={() => onTabChange('lotes')}
               className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
                 activeTab === 'lotes' 
-                  ? 'border-b-2 border-blue-500 text-gray-900' 
+                  ? 'border-b-2 border-red-500 text-gray-900' 
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 
-const Dashboard = () => {
+const DashboardContent = () => {
   // Datos de ejemplo para el dashboard
   const estadisticas = {
     lotesActivos: 3,
@@ -87,4 +87,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardContent;

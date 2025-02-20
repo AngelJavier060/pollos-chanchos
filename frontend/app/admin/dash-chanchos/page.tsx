@@ -1,68 +1,92 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ClockIcon, CubeIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import Navbar from './components/Navbar'; // Importamos el Navbar
-import RegistroChanchos from './components/RegistroChanchos'; // Registro de Chanchos
-import RegistroAlimentos from './components/RegistroAlimentos'; // Registro de Alimentos
-import RegistroMedicinas from './components/RegistroMedicinas'; // Registro de Medicinas
+import { useState, useEffect } from 'react';
+import Dashboard from './components/Dashboard';
+import Navbar from './components/Navbar';
 
-// Importa el componente DashboardContent donde tienes las gráficas
-import DashboardContent from './components/Dashboard'; // Importamos DashboardContent para las gráficas
+interface Lote {
+  id: string;
+  nombre: string;
+  raza: string;
+  cantidad: number;
+  fecha_nacimiento: string;
+  tipo_animal: string;
+}
 
-const Dashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('dashboard'); // Estado para manejar las pestañas
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // Estado para manejar el desplegable
-  const router = useRouter(); // Hook para manejar redirección
+export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [lotes, setLotes] = useState<Lote[]>([]);
 
-  const handleLogout = () => {
-    router.push('/'); // Redirige a la página principal
+  // Cargar lotes desde localStorage
+  useEffect(() => {
+    const lotesGuardados = localStorage.getItem('lotes');
+    if (lotesGuardados) {
+      const todosLotes = JSON.parse(lotesGuardados);
+      // Filtrar solo los lotes de chanchos
+      const lotesChanchos = todosLotes.filter((lote: Lote) => 
+        lote.tipo_animal === 'chancho' || lote.raza.toLowerCase().includes('chancho')
+      );
+      setLotes(lotesChanchos);
+    }
+  }, []);
+
+  // Calcular días desde el nacimiento
+  const calcularDiasDesdeNacimiento = (fecha: string) => {
+    const nacimiento = new Date(fecha);
+    const hoy = new Date();
+    const diferencia = hoy.getTime() - nacimiento.getTime();
+    return Math.floor(diferencia / (1000 * 60 * 60 * 24));
   };
 
-  return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Franja superior */}
-      <div className="bg-white shadow flex items-center justify-between px-4 py-2">
-        <div className="flex items-center space-x-4">
-          <button className="bg-purple-600 text-white p-2 rounded">
-            <ClockIcon className="h-5 w-5" />
-          </button>
+  const LotesView = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {lotes.length === 0 ? (
+        <div className="col-span-full text-center py-10 text-gray-500">
+          No hay lotes registrados
         </div>
-        <div className="flex items-center space-x-4">
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition"
-            onClick={handleLogout}
-          >
-            Salir
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-grow">
-        {/* Menú lateral */}
-        <aside className="w-20 bg-blue-900 shadow-lg min-h-screen flex flex-col items-center py-4">
-          <Navbar activeTab={activeTab} setActiveTab={setActiveTab} isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
-        </aside>
-
-        {/* Contenido principal */}
-        <div className="flex-1 p-6">
-          {/* Mostrar el contenido de cada pestaña */}
-          {activeTab === 'dashboard' && (
-            <div>
-              <h1 className="text-2xl font-bold text-gray-700">Dashboard de Chanchos</h1>
-              <p className="text-gray-600">Bienvenido al panel de control de Chanchos.</p>
-              {/* Aquí se añaden las gráficas */}
-              <DashboardContent /> {/* Esta es la parte que renderiza el gráfico */}
+      ) : (
+        lotes.map((lote, index) => (
+          <div key={lote.id} className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4">Lote {index + 1}</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Raza:</span>
+                <span className="text-right">{lote.raza}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Cantidad:</span>
+                <span className="text-right">{lote.cantidad} chanchos</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Edad:</span>
+                <span className="text-right">{calcularDiasDesdeNacimiento(lote.fecha_nacimiento)} días</span>
+              </div>
+              <button 
+                className="w-full mt-4 py-2 text-center text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+                onClick={() => {
+                  // Aquí irá la funcionalidad de ver detalles
+                }}
+              >
+                Ver Detalles
+              </button>
             </div>
-          )}
-          {activeTab === 'registro-chanchos' && <RegistroChanchos />} {/* Cambié el componente a RegistroChanchos */}
-          {activeTab === 'registro-alimentos' && <RegistroAlimentos />}
-          {activeTab === 'registro-medicinas' && <RegistroMedicinas />}
-        </div>
-      </div>
+          </div>
+        ))
+      )}
     </div>
   );
-};
 
-export default Dashboard;
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      
+      <main className="p-8 pt-20">
+        <h1 className="text-2xl font-bold mb-6">
+          {activeTab === 'dashboard' ? 'Panel de Control' : 'Mis Lotes'}
+        </h1>
+        
+        {activeTab === 'dashboard' ? <Dashboard /> : <LotesView />}
+      </main>
+    </div>
+  );
+}

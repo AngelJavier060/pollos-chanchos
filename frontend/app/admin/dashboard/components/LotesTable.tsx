@@ -31,8 +31,11 @@ const LotesTable = ({ lotes, onEdit, onDelete, loading }: LotesTableProps) => {
     return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
   };
 
-  const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
+  const formatCurrency = (amount: number | undefined) => {
+    if (typeof amount === 'number') {
+      return `$${amount.toFixed(2)}`;
+    }
+    return '$0.00';
   };
 
   if (loading) {

@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
+import Link from 'next/link';
 
 interface PlanAlimentacion {
   id: number;
@@ -137,6 +138,23 @@ export default function PlanNutricionalPage() {
 
   return (
     <div className="p-6">
+      <div className="mb-6">
+        <nav className="flex space-x-4">
+          <Link 
+            href="/admin/dashboard/plan-nutricional"
+            className="px-4 py-2 rounded-lg hover:bg-gray-100 bg-gray-100 font-semibold"
+          >
+            Plan de Alimentación
+          </Link>
+          <Link 
+            href="/admin/dashboard/plan-medicacion"
+            className="px-4 py-2 rounded-lg hover:bg-gray-100"
+          >
+            Plan de Medicación
+          </Link>
+        </nav>
+      </div>
+      
       <h2 className="text-2xl font-bold mb-4">Plan de Alimentación</h2>
       
       <Tabs defaultValue="pollo" className="space-y-4" onValueChange={handleTabChange}>
