@@ -15,17 +15,26 @@ import {
 
 // Función para cargar datos del localStorage
 const loadLotesFromStorage = () => {
-  if (typeof window !== 'undefined') {
-    const savedLotes = localStorage.getItem('lotes');
-    return savedLotes ? JSON.parse(savedLotes) : [];
+  try {
+    if (typeof window !== 'undefined') {
+      const savedLotes = localStorage.getItem('lotes');
+      return savedLotes ? JSON.parse(savedLotes) : [];
+    }
+    return [];
+  } catch (error) {
+    console.error('Error al cargar datos:', error);
+    return [];
   }
-  return [];
 };
 
 // Función para guardar datos en localStorage
 const saveLotesToStorage = (lotes: any[]) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('lotes', JSON.stringify(lotes));
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lotes', JSON.stringify(lotes));
+    }
+  } catch (error) {
+    console.error('Error al guardar datos:', error);
   }
 };
 
@@ -37,34 +46,51 @@ const LotesView = () => {
   // Cargar datos al montar el componente
   useEffect(() => {
     const savedLotes = loadLotesFromStorage();
-    setLotes(savedLotes);
+    if (savedLotes && savedLotes.length > 0) {
+      setLotes(savedLotes);
+    }
   }, []);
 
   // Guardar datos cuando cambian
   useEffect(() => {
-    saveLotesToStorage(lotes);
+    if (lotes.length > 0) {
+      saveLotesToStorage(lotes);
+    }
   }, [lotes]);
 
   const handleSubmit = async (formData: any) => {
     try {
+      const timestamp = Date.now();
       if (editingLote) {
-        console.log('Actualizando lote:', formData);
+        // Actualizar lote existente
         const updatedLotes = lotes.map(lote => 
-          lote.id === editingLote.id ? { ...formData, id: lote.id } : lote
+          lote.id === editingLote.id 
+            ? { 
+                ...formData, 
+                id: lote.id,
+                updatedAt: timestamp 
+              } 
+            : lote
         );
         setLotes(updatedLotes);
+        saveLotesToStorage(updatedLotes); // Guardar inmediatamente
       } else {
-        console.log('Creando nuevo lote:', formData);
+        // Crear nuevo lote
         const newLote = {
           ...formData,
-          id: Date.now()
+          id: timestamp,
+          createdAt: timestamp,
+          updatedAt: timestamp
         };
-        setLotes([...lotes, newLote]);
+        const newLotes = [...lotes, newLote];
+        setLotes(newLotes);
+        saveLotesToStorage(newLotes); // Guardar inmediatamente
       }
       setIsOpen(false);
       setEditingLote(null);
     } catch (error) {
       console.error('Error al guardar lote:', error);
+      alert('Error al guardar los datos. Por favor, intente nuevamente.');
     }
   };
 
@@ -76,10 +102,14 @@ const LotesView = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const updatedLotes = lotes.filter(lote => lote.id !== id);
-      setLotes(updatedLotes);
+      if (confirm('¿Está seguro de que desea eliminar este lote?')) {
+        const updatedLotes = lotes.filter(lote => lote.id !== id);
+        setLotes(updatedLotes);
+        saveLotesToStorage(updatedLotes); // Guardar inmediatamente
+      }
     } catch (error) {
       console.error('Error al eliminar lote:', error);
+      alert('Error al eliminar el lote. Por favor, intente nuevamente.');
     }
   };
 

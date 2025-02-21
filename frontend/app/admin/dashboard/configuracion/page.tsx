@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { Label } from "@/app/components/ui/label";
 import { Switch } from "@/app/components/ui/switch";
+import { InventoryHistory } from '../components/inventario/InventoryHistory';
 
 export default function ConfiguracionPage() {
   const { theme } = useTheme();
@@ -40,6 +41,7 @@ export default function ConfiguracionPage() {
           <TabsList>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="notificaciones">Notificaciones</TabsTrigger>
+            <TabsTrigger value="historial">Historial</TabsTrigger>
             <TabsTrigger value="apariencia">Apariencia</TabsTrigger>
             <TabsTrigger value="seguridad">Seguridad</TabsTrigger>
           </TabsList>
@@ -49,33 +51,90 @@ export default function ConfiguracionPage() {
               <CardHeader>
                 <CardTitle>Configuración General</CardTitle>
                 <CardDescription>
-                  Configura los ajustes básicos del sistema
+                  Configura los parámetros generales del sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Contenido de configuración general */}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notificaciones">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuración de Notificaciones</CardTitle>
+                <CardDescription>
+                  Administra las notificaciones y alertas del sistema
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Backup Automático</Label>
-                    <p className={`text-sm ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      Realizar copias de seguridad automáticas
-                    </p>
-                  </div>
+                <div className="flex items-center space-x-4">
                   <Switch
-                    checked={configuracion.backupAutomatico}
-                    onCheckedChange={(checked) => 
-                      setConfiguracion({...configuracion, backupAutomatico: checked})
+                    id="notificaciones"
+                    checked={configuracion.notificaciones}
+                    onCheckedChange={(checked) =>
+                      setConfiguracion({ ...configuracion, notificaciones: checked })
                     }
                   />
+                  <Label htmlFor="notificaciones">Notificaciones del sistema</Label>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <Switch
+                    id="alertasEmail"
+                    checked={configuracion.alertasEmail}
+                    onCheckedChange={(checked) =>
+                      setConfiguracion({ ...configuracion, alertasEmail: checked })
+                    }
+                  />
+                  <Label htmlFor="alertasEmail">Alertas por correo electrónico</Label>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Aquí irían los demás TabsContent para las otras pestañas */}
+          <TabsContent value="historial">
+            <InventoryHistory />
+          </TabsContent>
+
+          <TabsContent value="apariencia">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuración de Apariencia</CardTitle>
+                <CardDescription>
+                  Personaliza la apariencia del sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Contenido de configuración de apariencia */}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="seguridad">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuración de Seguridad</CardTitle>
+                <CardDescription>
+                  Administra la seguridad del sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-4">
+                  <Switch
+                    id="backupAutomatico"
+                    checked={configuracion.backupAutomatico}
+                    onCheckedChange={(checked) =>
+                      setConfiguracion({ ...configuracion, backupAutomatico: checked })
+                    }
+                  />
+                  <Label htmlFor="backupAutomatico">Backup automático de datos</Label>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
   );
-} 
+}
