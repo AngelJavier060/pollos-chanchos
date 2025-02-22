@@ -95,11 +95,12 @@ export const GeneralView = () => {
   useEffect(() => {
     const calcularInversion = async () => {
       try {
-        const productos = await api.get('/inventario/productos');
+        const response = await api.get('/inventario/productos');
+        const productos = response.data || []; // Asegurarnos de que tenemos un array
         
         // Solo sumar los costos unitarios
         let total = 0;
-        if (productos) {
+        if (Array.isArray(productos) && productos.length > 0) {
           productos.forEach((producto: any) => {
             if (producto.estado) {
               const precioUnitario = Number(producto.precio_unitario);
