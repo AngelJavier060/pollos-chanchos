@@ -36,6 +36,7 @@ interface PlanMedicacion {
   dias_aplicacion: number;
   via_administracion: string;
   observaciones?: string;
+  dias: number;
 }
 
 interface Cronograma {
@@ -107,6 +108,14 @@ interface Producto {
   proveedor: string;
 }
 
+interface Lote {
+  id: string;
+  tipo_animal: 'pollos' | 'chanchos';
+  fecha_nacimiento: string;
+  cantidad: number;
+  estado: string;
+}
+
 export default function PlanNutricionalPage() {
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState('plan-alimentacion');
@@ -126,6 +135,8 @@ export default function PlanNutricionalPage() {
   const [weekDates, setWeekDates] = useState<any[]>([]);
   const [currentRangeIndex, setCurrentRangeIndex] = useState(0);
   const [editandoDia, setEditandoDia] = useState<string | null>(null);
+  const [lotes, setLotes] = useState<Lote[]>([]);
+  const [lotesActivos, setLotesActivos] = useState<{[key: string]: number}>({});
 
   // Función para obtener las fechas de la semana actual
   const getCurrentWeekDates = () => {
@@ -155,27 +166,6 @@ export default function PlanNutricionalPage() {
     setWeekDates(weekDates);
   }, []);
 
-  // Guardar planes de alimentación cuando cambian
-  useEffect(() => {
-    if (planes.length > 0) {
-      localStorage.setItem('planes_alimentacion', JSON.stringify(planes));
-    }
-  }, [planes]);
-
-  // Guardar planes de medicación cuando cambian
-  useEffect(() => {
-    if (medicaciones.length > 0) {
-      localStorage.setItem('planes_medicacion', JSON.stringify(medicaciones));
-    }
-  }, [medicaciones]);
-
-  // Guardar programación cuando cambia
-  useEffect(() => {
-    if (Object.keys(programacionPorRango).length > 0) {
-      localStorage.setItem('programacion_por_rango', JSON.stringify(programacionPorRango));
-    }
-  }, [programacionPorRango]);
-
   // Cargar datos iniciales
   useEffect(() => {
     // Cargar planes de alimentación
@@ -183,9 +173,10 @@ export default function PlanNutricionalPage() {
     if (planesGuardados) {
       try {
         const planesParseados = JSON.parse(planesGuardados);
+        console.log('Planes de alimentación cargados:', planesParseados);
         setPlanes(planesParseados);
       } catch (error) {
-        console.error('Error al cargar planes:', error);
+        console.error('Error al cargar planes de alimentación:', error);
       }
     }
 
@@ -194,9 +185,10 @@ export default function PlanNutricionalPage() {
     if (medicacionesGuardadas) {
       try {
         const medicacionesParseadas = JSON.parse(medicacionesGuardadas);
+        console.log('Planes de medicación cargados:', medicacionesParseadas);
         setMedicaciones(medicacionesParseadas);
       } catch (error) {
-        console.error('Error al cargar medicaciones:', error);
+        console.error('Error al cargar planes de medicación:', error);
       }
     }
 
@@ -205,23 +197,49 @@ export default function PlanNutricionalPage() {
     if (programacionGuardada) {
       try {
         const programacionParseada = JSON.parse(programacionGuardada);
+        console.log('Programación cargada:', programacionParseada);
         setProgramacionPorRango(programacionParseada);
       } catch (error) {
         console.error('Error al cargar programación:', error);
       }
     }
 
-    // Cargar productos
-    const productosGuardados = localStorage.getItem('productos');
-    if (productosGuardados) {
+    // Cargar lotes
+    const lotesGuardados = localStorage.getItem('lotes');
+    if (lotesGuardados) {
       try {
-        const productosParseados = JSON.parse(productosGuardados);
-        setProductos(productosParseados);
+        const lotesParseados = JSON.parse(lotesGuardados);
+        console.log('Lotes cargados:', lotesParseados);
+        setLotes(lotesParseados);
       } catch (error) {
-        console.error('Error al cargar productos:', error);
+        console.error('Error al cargar lotes:', error);
       }
     }
   }, []);
+
+  // Guardar planes cuando cambien
+  useEffect(() => {
+    if (planes.length > 0) {
+      console.log('Guardando planes de alimentación:', planes);
+      localStorage.setItem('planes_alimentacion', JSON.stringify(planes));
+    }
+  }, [planes]);
+
+  // Guardar medicaciones cuando cambien
+  useEffect(() => {
+    if (medicaciones.length > 0) {
+      console.log('Guardando planes de medicación:', medicaciones);
+      localStorage.setItem('planes_medicacion', JSON.stringify(medicaciones));
+    }
+  }, [medicaciones]);
+
+  // Guardar programación cuando cambie
+  useEffect(() => {
+    if (Object.keys(programacionPorRango).length > 0) {
+      console.log('Guardando programación:', programacionPorRango);
+      localStorage.setItem('programacion_por_rango', JSON.stringify(programacionPorRango));
+    }
+  }, [programacionPorRango]);
 
   // Actualizar etapas disponibles cuando se selecciona una medicina
   useEffect(() => {
@@ -292,7 +310,8 @@ export default function PlanNutricionalPage() {
         dosis_ml: Number(formData.get('dosis_ml')),
         dias_aplicacion: Number(formData.get('dias_aplicacion')),
         via_administracion: formData.get('via_administracion') as string,
-        observaciones: formData.get('observaciones') as string
+        observaciones: formData.get('observaciones') as string,
+        dias: Number(formData.get('dias_aplicacion')),
       };
 
       if (editando) {
@@ -335,7 +354,7 @@ export default function PlanNutricionalPage() {
         const nuevoProgramacionPorRango = { ...prev };
         if (!nuevoProgramacionPorRango[rangoEdad]) {
           nuevoProgramacionPorRango[rangoEdad] = {
-            titulo: `${tipoAnimal} de ${rangoEdad} días`,
+            titulo: `${tipoAnimal} de ${rangoEdad} dias`,
             programacion: {}
           };
         }
@@ -395,6 +414,47 @@ export default function PlanNutricionalPage() {
     };
     setProgramacionPorRango(nuevaProgramacion);
     localStorage.setItem('programacion_por_rango', JSON.stringify(nuevaProgramacion));
+  };
+
+  // Función para obtener las medicaciones correspondientes a los días de vida
+  const obtenerMedicacionesPorDias = (diasVida: number) => {
+    console.log('Verificando medicaciones para día:', diasVida);
+    return medicaciones.filter(med => {
+      const diasMedicacion = Number(med.dias);
+      console.log(`Comparando medicina ${med.medicina_nombre}: día ${diasMedicacion} con día actual ${diasVida}`);
+      return diasMedicacion === diasVida;
+    });
+  };
+
+  // Función para obtener los días de vida para una fecha específica
+  const obtenerDiasVidaParaFecha = (fecha: Date) => {
+    const fechaCalendario = new Date(fecha);
+    fechaCalendario.setHours(0, 0, 0, 0);
+
+    return lotes
+      .filter(lote => lote.estado === 'activo' && lote.tipo_animal === 'pollos')
+      .map(lote => {
+        const fechaNacimiento = new Date(lote.fecha_nacimiento);
+        fechaNacimiento.setHours(0, 0, 0, 0);
+        
+        const diasVida = Math.floor(
+          (fechaCalendario.getTime() - fechaNacimiento.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        console.log('Calculando días de vida:', {
+          loteId: lote.id,
+          fechaNacimiento: fechaNacimiento.toISOString(),
+          fechaCalendario: fechaCalendario.toISOString(),
+          diasVida
+        });
+
+        return {
+          loteId: lote.id,
+          diasVida,
+          tipoAnimal: lote.tipo_animal,
+          fechaNacimiento: lote.fecha_nacimiento
+        };
+      });
   };
 
   return (
@@ -657,6 +717,30 @@ export default function PlanNutricionalPage() {
                         </Button>
                       </div>
                     )}
+                    
+                    {/* Mostrar medicaciones automáticas según los días de vida */}
+                    {obtenerDiasVidaParaFecha(new Date(dayInfo.date)).map(({ loteId, diasVida }) => {
+                      const medicacionesDelDia = obtenerMedicacionesPorDias(diasVida);
+                      return medicacionesDelDia.length > 0 ? (
+                        <div key={loteId} className="mb-3 bg-red-50 rounded-lg p-2 border-2 border-red-300">
+                          <div className="font-medium text-red-800">
+                            ¡Vacunación Requerida! - Día {diasVida}
+                          </div>
+                          {medicacionesDelDia.map((med, index) => (
+                            <div key={index} className="text-sm text-red-700">
+                              <div className="font-semibold">
+                                {med.medicina_nombre}
+                              </div>
+                              <div className="text-xs space-y-1">
+                                <div>Etapa: {med.etapa}</div>
+                                <div>Dosis: {med.dosis_ml}ml</div>
+                                <div>Vía: {med.via_administracion}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null;
+                    })}
                   </div>
                 ))}
               </div>
@@ -674,7 +758,7 @@ export default function PlanNutricionalPage() {
                     onClick={() => setRangoActual(rango)}
                     className="text-sm"
                   >
-                    {datos.titulo || `${rango} días`}
+                    {datos.titulo || `${rango} dias`}
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
