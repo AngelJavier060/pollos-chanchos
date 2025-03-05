@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { Progress } from "@/app/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/app/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Package2, AlertTriangle } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 
 interface Producto {
@@ -149,51 +149,86 @@ export default function ControlStock() {
       {/* Alertas de Stock */}
       {alertas.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Alertas de Stock</h3>
-          {alertas.map((alerta) => (
-            <Alert
-              key={`${alerta.producto_id}-${alerta.fecha}`}
-              variant={alerta.tipo === 'critico' ? "destructive" : "warning"}
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>
-                {alerta.tipo === 'critico' ? 'Nivel Crítico' : 'Stock Bajo'}
-              </AlertTitle>
-              <AlertDescription>{alerta.mensaje}</AlertDescription>
-            </Alert>
-          ))}
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-yellow-500" />
+            <h3 className="text-lg font-semibold">Alertas de Stock</h3>
+          </div>
+          <div className="grid gap-3">
+            {alertas.map((alerta) => (
+              <Alert
+                key={`${alerta.producto_id}-${alerta.fecha}`}
+                variant={alerta.tipo === 'critico' ? "destructive" : "warning"}
+                className={alerta.tipo === 'critico' ? 
+                  'border-red-200 bg-red-50 text-red-800' : 
+                  'border-yellow-200 bg-yellow-50 text-yellow-800'
+                }
+              >
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle className="font-semibold">
+                  {alerta.tipo === 'critico' ? 'Nivel Crítico' : 'Stock Bajo'}
+                </AlertTitle>
+                <AlertDescription>{alerta.mensaje}</AlertDescription>
+              </Alert>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Lista de Productos */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {productos.map((producto) => (
-          <Card key={producto.id}>
+          <Card key={producto.id} className="bg-white border-gray-200 shadow-sm hover:shadow transition-shadow duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {producto.nombre}
-              </CardTitle>
-              <span className={`text-sm font-medium ${getEstadoColor(producto.estado)}`}>
+              <div className="flex items-center gap-2">
+                <Package2 className={`h-4 w-4 ${getEstadoColor(producto.estado)}`} />
+                <CardTitle className="text-sm font-medium">
+                  {producto.nombre}
+                </CardTitle>
+              </div>
+              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                producto.estado === 'active' ? 'bg-green-50 text-green-700' :
+                producto.estado === 'low_stock' ? 'bg-yellow-50 text-yellow-700' :
+                producto.estado === 'critical' ? 'bg-red-50 text-red-700' :
+                'bg-gray-50 text-gray-700'
+              }`}>
                 {getEstadoLabel(producto.estado)}
               </span>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{producto.cantidad}</div>
+              <div className="flex items-baseline gap-1 mb-2">
+                <div className="text-2xl font-bold">{producto.cantidad}</div>
+                <div className="text-sm text-gray-500">unidades</div>
+              </div>
               <Progress
                 value={calcularPorcentajeStock(producto.cantidad, producto.minimo)}
-                className={getColorPorcentaje(calcularPorcentajeStock(producto.cantidad, producto.minimo))}
+                className={`h-2 ${getColorPorcentaje(calcularPorcentajeStock(producto.cantidad, producto.minimo))}`}
               />
-              <div className="mt-2 flex justify-between text-sm text-muted-foreground">
-                <span>Crítico: {producto.critico}</span>
-                <span>Mínimo: {producto.minimo}</span>
+              <div className="mt-3 flex justify-between text-sm text-gray-600">
+                <div className="flex flex-col">
+                  <span className="text-xs text-gray-500">Crítico</span>
+                  <span className="font-medium">{producto.critico}</span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-xs text-gray-500">Mínimo</span>
+                  <span className="font-medium">{producto.minimo}</span>
+                </div>
               </div>
               {producto.ciclo_actual && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  {producto.estado === 'cycle_ended' ? 
-                    `Ciclo finalizado: ${new Date(producto.ciclo_actual.fecha_fin!).toLocaleDateString()}` :
-                    `Ciclo iniciado: ${new Date(producto.ciclo_actual.fecha_inicio).toLocaleDateString()}`
-                  }
-                </p>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <p className="text-xs text-gray-600">
+                    {producto.estado === 'cycle_ended' ? (
+                      <span className="flex items-center gap-1 text-red-600">
+                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                        Ciclo finalizado: {new Date(producto.ciclo_actual.fecha_fin!).toLocaleDateString()}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-green-600">
+                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        Ciclo iniciado: {new Date(producto.ciclo_actual.fecha_inicio).toLocaleDateString()}
+                      </span>
+                    )}
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -201,4 +236,4 @@ export default function ControlStock() {
       </div>
     </div>
   );
-}
+};

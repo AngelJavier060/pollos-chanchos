@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/app/components/ui/button";
-import { Plus } from 'lucide-react';
+import { Plus, ListPlus, Info } from 'lucide-react';
 import LoteForm from './LoteForm';
 import LotesTable from './LotesTable';
 import {
@@ -114,35 +114,53 @@ const LotesView = () => {
   };
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Registro de Lotes</h2>
+    <div className="space-y-6 p-8 pt-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+            Registro de Lotes
+          </h2>
+          <p className="mt-1 text-gray-600">
+            Gestiona los lotes de pollos y chanchos de la granja
+          </p>
+        </div>
+
         <Button 
           onClick={() => {
             setEditingLote(null);
             setIsOpen(true);
           }}
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-sm transition-all duration-200 hover:shadow flex items-center gap-2"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-5 h-5" />
           Nuevo Lote
         </Button>
       </div>
 
-      <LotesTable 
-        lotes={lotes}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+        <div className="flex items-center gap-2 mb-6 p-4 bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
+          <Info className="h-5 w-5 flex-shrink-0" />
+          <p className="text-sm">
+            Aquí puedes ver y gestionar todos los lotes de animales registrados en el sistema.
+          </p>
+        </div>
+
+        <LotesTable 
+          lotes={lotes}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-2xl font-bold">
               {editingLote ? 'Editar Lote' : 'Crear Nuevo Lote'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-gray-600">
               Complete el formulario para {editingLote ? 'editar el' : 'crear un nuevo'} lote.
+              Todos los campos marcados con * son obligatorios.
             </DialogDescription>
           </DialogHeader>
           <LoteForm

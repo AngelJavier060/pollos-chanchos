@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/components/ui/table";
-import { Search, Pencil, Trash2, Plus } from "lucide-react";
+import { Search, Pencil, Trash2, Plus, PackageSearch } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Producto } from '../../types/inventario';
 import ProductoForm from './ProductoForm';
@@ -79,13 +79,13 @@ export default function InventarioList() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="relative w-64">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
           <Input
             placeholder="Buscar productos..."
-            className="pl-8"
+            className="pl-8 bg-white"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -95,47 +95,70 @@ export default function InventarioList() {
             setEditingProduct(null);
             setIsOpen(true);
           }}
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-sm transition-all duration-200 hover:shadow w-full sm:w-auto"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-5 h-5 mr-2" />
           Nuevo Producto
         </Button>
       </div>
 
-      <div className="border rounded-md">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Nombre de la Etapa</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Para</TableHead>
-              <TableHead>Cantidad</TableHead>
-              <TableHead>Unidad</TableHead>
-              <TableHead>Precio Unit.</TableHead>
-              <TableHead>Proveedor</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+            <TableRow className="bg-gray-50 hover:bg-gray-50">
+              <TableHead className="font-semibold text-gray-600">Nombre</TableHead>
+              <TableHead className="font-semibold text-gray-600">Etapa</TableHead>
+              <TableHead className="font-semibold text-gray-600">Tipo</TableHead>
+              <TableHead className="font-semibold text-gray-600">Para</TableHead>
+              <TableHead className="font-semibold text-gray-600 text-right">Cantidad</TableHead>
+              <TableHead className="font-semibold text-gray-600">Unidad</TableHead>
+              <TableHead className="font-semibold text-gray-600 text-right">Precio Unit.</TableHead>
+              <TableHead className="font-semibold text-gray-600">Proveedor</TableHead>
+              <TableHead className="font-semibold text-gray-600 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-4">
-                  No hay productos en el inventario
+                <TableCell colSpan={9}>
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <PackageSearch className="h-12 w-12 text-gray-400 mb-3" />
+                    <p className="text-gray-600 font-medium mb-1">No hay productos en el inventario</p>
+                    <p className="text-gray-500 text-sm">Agrega un nuevo producto usando el botón "Nuevo Producto"</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               filteredProducts.map((producto) => (
-                <TableRow key={producto.id}>
-                  <TableCell>{producto.nombre}</TableCell>
+                <TableRow key={producto.id} className="hover:bg-gray-50 transition-colors duration-150">
+                  <TableCell className="font-medium">{producto.nombre}</TableCell>
                   <TableCell>{producto.detalle}</TableCell>
-                  <TableCell>{producto.tipo}</TableCell>
-                  <TableCell>{producto.tipo_animal}</TableCell>
-                  <TableCell>{producto.cantidad}</TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                      {producto.tipo}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                      producto.tipo_animal?.toLowerCase() === 'pollos' 
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700' 
+                        : 'border-purple-200 bg-purple-50 text-purple-700'
+                    }`}>
+                      {producto.tipo_animal?.toLowerCase() === 'pollos' ? '🐔 Pollos' : '🐷 Cerdos'}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    {new Intl.NumberFormat('es-PE').format(producto.cantidad)}
+                  </TableCell>
                   <TableCell>{producto.unidad_medida}</TableCell>
-                  <TableCell>${producto.precio_unitario}</TableCell>
+                  <TableCell className="text-right font-medium">
+                    {new Intl.NumberFormat('es-PE', {
+                      style: 'currency',
+                      currency: 'PEN'
+                    }).format(producto.precio_unitario)}
+                  </TableCell>
                   <TableCell>{producto.proveedor}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell>
                     <div className="flex justify-end space-x-2">
                       <Button
                         variant="ghost"
@@ -144,16 +167,19 @@ export default function InventarioList() {
                           setEditingProduct(producto);
                           setIsOpen(true);
                         }}
+                        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                       >
                         <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(producto.id)}
-                        className="text-red-600 hover:text-red-800"
+                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Eliminar</span>
                       </Button>
                     </div>
                   </TableCell>
